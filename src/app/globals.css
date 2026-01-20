@@ -1,0 +1,301 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'PT Sans', sans-serif; /* Set default font */
+}
+
+@layer base {
+  :root {
+    --background: 60 20% 95%; /* #F5F5F0 */
+    --foreground: 60 10% 10%;
+
+    --card: 60 20% 100%;
+    --card-foreground: 60 10% 10%;
+
+    --popover: 60 20% 100%;
+    --popover-foreground: 60 10% 10%;
+
+    --primary: 125 30% 74%; /* #A7D1AB */
+    --primary-foreground: 125 30% 15%;
+
+    --secondary: 60 20% 90%;
+    --secondary-foreground: 60 10% 15%;
+
+    --muted: 60 20% 85%;
+    --muted-foreground: 60 10% 45%; /* Adjusted for better contrast */
+
+    --accent: 208 38% 70%; /* #95B8D1 */
+    --accent-foreground: 208 30% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 60 20% 80%;
+    --input: 60 20% 88%;
+    --ring: 125 30% 65%; /* Primary color based ring */
+
+    --radius: 0.5rem;
+
+    /* Sidebar specific colors */
+    --sidebar-background: 60 20% 92%;
+    --sidebar-foreground: 60 10% 20%;
+    --sidebar-primary: 125 30% 74%;
+    --sidebar-primary-foreground: 125 30% 15%;
+    --sidebar-accent: 208 38% 75%;
+    --sidebar-accent-foreground: 208 30% 15%;
+    --sidebar-border: 60 20% 85%;
+    --sidebar-ring: 125 30% 65%;
+
+    --chart-1: 125 30% 60%; /* Based on primary */
+    --chart-2: 208 38% 60%; /* Based on accent */
+    --chart-3: 30 80% 65%; /* A warm complementary color */
+    --chart-4: 180 40% 55%; /* A cool complementary color */
+    --chart-5: 0 0% 50%; /* Neutral gray */
+  }
+
+  .dark {
+    --background: 240 10% 10%;
+    --foreground: 240 5% 95%;
+
+    --card: 240 10% 15%;
+    --card-foreground: 240 5% 95%;
+
+    --popover: 240 10% 15%;
+    --popover-foreground: 240 5% 95%;
+
+    --primary: 125 30% 60%;
+    --primary-foreground: 125 25% 95%;
+
+    --secondary: 240 10% 20%;
+    --secondary-foreground: 240 5% 90%;
+
+    --muted: 240 10% 25%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 208 35% 60%;
+    --accent-foreground: 208 25% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 10% 30%;
+    --input: 240 10% 28%;
+    --ring: 125 30% 50%;
+
+    /* Sidebar specific colors */
+    --sidebar-background: 240 10% 12%;
+    --sidebar-foreground: 240 5% 90%;
+    --sidebar-primary: 125 30% 60%;
+    --sidebar-primary-foreground: 125 25% 95%;
+    --sidebar-accent: 208 35% 65%;
+    --sidebar-accent-foreground: 208 25% 95%;
+    --sidebar-border: 240 10% 25%;
+    --sidebar-ring: 125 30% 50%;
+
+    --chart-1: 125 30% 70%;
+    --chart-2: 208 38% 70%;
+    --chart-3: 30 80% 75%;
+    --chart-4: 180 40% 65%;
+    --chart-5: 0 0% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations for landing page */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Grid pattern background */
+.bg-grid-slate-900\/\[0\.04\] {
+  background-image: linear-gradient(to right, rgb(15 23 42 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.04) 1px, transparent 1px);
+}
+
+.dark .bg-grid-slate-400\/\[0\.05\] {
+  background-image: linear-gradient(to right, rgb(148 163 184 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.05) 1px, transparent 1px);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Page transition improvements */
+body {
+  overflow-x: hidden;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Link hover effect */
+a:hover {
+  transform: translateY(-1px);
+}
+
+/* Button press effect */
+button:active {
+  transform: scale(0.98);
+}
+
+/* Smooth card transitions */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile-friendly touch styles */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Disable hover effects on touch devices */
+  @media (hover: none) {
+    a:hover {
+      transform: none;
+    }
+    
+    button:hover {
+      transform: none;
+    }
+  }
+  
+  /* Active states for touch feedback */
+  button:active, a:active, .clickable:active {
+    opacity: 0.7;
+    transform: scale(0.97);
+  }
+}
+
+/* Safe area insets for notched devices */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch manipulation for better scroll performance */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on interactive elements */
+button, a, .no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth momentum scrolling on iOS */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, 
+    hsl(var(--muted)) 25%, 
+    hsl(var(--muted) / 0.5) 50%, 
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Swipe hint animation */
+@keyframes swipeHint {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-10px);
+    opacity: 0.5;
+  }
+}
+
+.animate-swipe-hint {
+  animation: swipeHint 2s ease-in-out infinite;
+}
+
