@@ -48,17 +48,31 @@ function ReportsSkeleton() {
 }
 
 export default function ReportsPage() {
-  const { expenses, customers, getYearlySummary } = useAppContext();
+  const { expenses, customers, getYearlySummary, isLoadingCustomers, isLoadingExpenses, refreshData } = useAppContext();
   const [selectedYear, setSelectedYear] = useState<number>(getYear(new Date()));
   const [dateRange, setDateRange] = useState<DateRange>('this-year');
   const [chartType, setChartType] = useState<'bar' | 'line' | 'area'>('bar');
   const [mounted, setMounted] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Reports Debug:', { 
+      mounted, 
+      isLoadingCustomers, 
+      isLoadingExpenses, 
+      customersCount: customers.length, 
+      expensesCount: expenses.length 
+    });
+  }, [mounted, isLoadingCustomers, isLoadingExpenses, customers.length, expenses.length]);
+
+  const isLoading = !mounted || isLoadingCustomers || isLoadingExpenses;
 
   // Calculate date range bounds
   const dateRangeBounds = useMemo(() => {
@@ -82,25 +96,25 @@ export default function ReportsPage() {
 
   // Filtered expenses based on date range
   const filteredExpenses = useMemo(() => {
-    if (!mounted) return [];
+    if (isLoading) return [];
     return expenses.filter(e => {
       const expenseDate = new Date(e.year, e.month - 1);
       return expenseDate >= dateRangeBounds.start && expenseDate <= dateRangeBounds.end;
     });
-  }, [expenses, dateRangeBounds, mounted]);
+  }, [expenses, dateRangeBounds, isLoading]);
 
   const yearlyData = useMemo(() => {
-    if (!mounted) return [];
+    if (isLoading) return [];
     return getYearlySummary(selectedYear).map(item => ({
       month: format(new Date(selectedYear, item.month - 1), 'MMM'),
       Billed: item.totalBilled,
       Paid: item.totalPaid,
       Outstanding: item.totalBilled - item.totalPaid,
     }));
-  }, [selectedYear, getYearlySummary, mounted]);
+  }, [selectedYear, getYearlySummary, isLoading]);
 
   const customerBalances = useMemo(() => {
-    if (!mounted) return [];
+    if (isLoading) return [];
     return customers.map(customer => {
       const customerExpenses = expenses.filter(e => e.customerId === customer.id);
       const totalBilled = customerExpenses.reduce((sum, e) => sum + e.amount, 0);
@@ -114,10 +128,10 @@ export default function ReportsPage() {
       };
     }).filter(cb => cb.outstanding > 0)
       .sort((a, b) => b.outstanding - a.outstanding);
-  }, [customers, expenses, mounted]);
+  }, [customers, expenses, isLoading]);
   
   const overallStats = useMemo(() => {
-    if (!mounted) return { totalBilled: 0, totalPaid: 0, totalOutstanding: 0, activeCustomers: 0, collectionRate: 0 };
+    if (isLoading) return { totalBilled: 0, totalPaid: 0, totalOutstanding: 0, activeCustomers: 0, collectionRate: 0 };
     const totalBilled = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
     const totalPaid = filteredExpenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
     const collectionRate = totalBilled > 0 ? (totalPaid / totalBilled) * 100 : 0;
@@ -128,11 +142,11 @@ export default function ReportsPage() {
       activeCustomers: customers.length,
       collectionRate,
     };
-  }, [filteredExpenses, customers, mounted]);
+  }, [filteredExpenses, customers, isLoading]);
 
   // Compare with previous period
   const trendData = useMemo(() => {
-    if (!mounted) return { billedTrend: 0, paidTrend: 0, collectionTrend: 0 };
+    if (isLoading) return { billedTrend: 0, paidTrend: 0, collectionTrend: 0 };
     
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -151,30 +165,30 @@ export default function ReportsPage() {
     const paidTrend = lastMonthPaid > 0 ? ((thisMonthPaid - lastMonthPaid) / lastMonthPaid) * 100 : 0;
     
     return { billedTrend, paidTrend, collectionTrend: 0 };
-  }, [expenses, mounted]);
+  }, [expenses, isLoading]);
 
   const paymentStatusData = useMemo(() => {
-    if (!mounted) return [];
+    if (isLoading) return [];
     const paidAmount = overallStats.totalPaid;
     const outstandingAmount = overallStats.totalOutstanding;
     return [
       { name: 'Paid', value: paidAmount, color: '#10b981' },
       { name: 'Outstanding', value: outstandingAmount, color: '#f97316' },
     ].filter(item => item.value > 0);
-  }, [overallStats, mounted]);
+  }, [overallStats, isLoading]);
 
 
   const availableYears = useMemo(() => {
-    if (!mounted || expenses.length === 0) return [getYear(new Date())];
+    if (isLoading || expenses.length === 0) return [getYear(new Date())];
     const years = new Set(expenses.map(e => e.year));
     return Array.from(years).sort((a, b) => b - a);
-  }, [expenses, mounted]);
+  }, [expenses, isLoading]);
   
   useEffect(() => {
-    if (mounted && availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+    if (!isLoading && availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
-  }, [availableYears, selectedYear, mounted]);
+  }, [availableYears, selectedYear, isLoading]);
 
   // Download beautiful Excel report from backend
   const handleDownloadBeautifulReport = async () => {
@@ -333,21 +347,58 @@ export default function ReportsPage() {
     });
   };
 
-  if (!mounted) {
+  if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-6">
         <PageHeader title="Reports" description="View financial summaries and key metrics." />
         <ReportsSkeleton />
       </div>
     );
   }
 
+  // Show empty state if no data
+  const hasNoData = customers.length === 0 && expenses.length === 0;
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      toast({ title: "Data Refreshed", description: "Latest data has been loaded." });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to refresh data", variant: "destructive" });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
-    <>
+    <div className="space-y-6 p-4 md:p-6">
+      {hasNoData && (
+        <Card className="p-6 text-center border-dashed border-2">
+          <div className="flex flex-col items-center gap-3">
+            <BarChart3 className="h-12 w-12 text-muted-foreground" />
+            <h3 className="text-lg font-semibold">No Data Available</h3>
+            <p className="text-muted-foreground text-sm max-w-md">
+              Start by adding customers and recording their monthly expenses. 
+              Your financial reports will appear here once you have data.
+            </p>
+            <div className="flex gap-2 mt-2">
+              <Button onClick={() => window.location.href = '/customers'}>
+                <Users className="h-4 w-4 mr-2" />
+                Add Customers
+              </Button>
+              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
+                {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Refresh Data
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
       <PageHeader title="Reports" description="View financial summaries and key metrics.">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Date Range" />
             </SelectTrigger>
@@ -362,7 +413,7 @@ export default function ReportsPage() {
           </Select>
           <Button 
             onClick={handleDownloadBeautifulReport} 
-            className="gap-2 bg-green-600 hover:bg-green-700"
+            className="gap-2 bg-green-600 hover:bg-green-700 w-full sm:w-auto"
             disabled={isDownloading}
           >
             {isDownloading ? (
@@ -376,77 +427,77 @@ export default function ReportsPage() {
       </PageHeader>
 
       {/* Stats Cards with Trends */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4 hover:shadow-lg transition-shadow">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 mb-6">
+        <Card className="p-3 md:p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Billed</p>
-              <p className="text-2xl font-bold">Rs. {overallStats.totalBilled.toFixed(0)}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1">Total Billed</p>
+              <p className="text-lg md:text-2xl font-bold truncate">₹{overallStats.totalBilled.toFixed(0)}</p>
               {trendData.billedTrend !== 0 && (
                 <div className={`flex items-center text-xs mt-1 ${trendData.billedTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {trendData.billedTrend > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  <span>{Math.abs(trendData.billedTrend).toFixed(1)}% vs last month</span>
+                  <span className="truncate">{Math.abs(trendData.billedTrend).toFixed(1)}%</span>
                 </div>
               )}
             </div>
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-              <IndianRupee className="h-5 w-5 text-blue-600" />
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+              <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 hover:shadow-lg transition-shadow">
+        <Card className="p-3 md:p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Collected</p>
-              <p className="text-2xl font-bold text-green-600">Rs. {overallStats.totalPaid.toFixed(0)}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1">Collected</p>
+              <p className="text-lg md:text-2xl font-bold text-green-600 truncate">₹{overallStats.totalPaid.toFixed(0)}</p>
               {trendData.paidTrend !== 0 && (
                 <div className={`flex items-center text-xs mt-1 ${trendData.paidTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {trendData.paidTrend > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  <span>{Math.abs(trendData.paidTrend).toFixed(1)}% vs last month</span>
+                  <span className="truncate">{Math.abs(trendData.paidTrend).toFixed(1)}%</span>
                 </div>
               )}
             </div>
-            <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 hover:shadow-lg transition-shadow">
+        <Card className="p-3 md:p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Outstanding</p>
-              <p className="text-2xl font-bold text-orange-600">Rs. {overallStats.totalOutstanding.toFixed(0)}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1">Outstanding</p>
+              <p className="text-lg md:text-2xl font-bold text-orange-600 truncate">₹{overallStats.totalOutstanding.toFixed(0)}</p>
               <p className="text-xs text-muted-foreground mt-1">{customerBalances.length} customers</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-              <TrendingDown className="h-5 w-5 text-orange-600" />
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center flex-shrink-0">
+              <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-orange-600" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 hover:shadow-lg transition-shadow">
+        <Card className="p-3 md:p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Collection Rate</p>
-              <p className="text-2xl font-bold text-purple-600">{overallStats.collectionRate.toFixed(1)}%</p>
-              <Progress value={overallStats.collectionRate} className="h-2 mt-2 w-24" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1">Collection Rate</p>
+              <p className="text-lg md:text-2xl font-bold text-purple-600">{overallStats.collectionRate.toFixed(1)}%</p>
+              <Progress value={overallStats.collectionRate} className="h-2 mt-2 w-full max-w-24" />
             </div>
-            <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-              <Users className="h-5 w-5 text-purple-600" />
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center flex-shrink-0">
+              <Users className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
             </div>
           </div>
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Yearly Financial Summary</CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <CardTitle className="text-base md:text-lg">Yearly Summary</CardTitle>
               <div className="flex items-center gap-2">
-                <Tabs value={chartType} onValueChange={(v) => setChartType(v as any)} className="hidden md:block">
+                <Tabs value={chartType} onValueChange={(v) => setChartType(v as any)} className="hidden sm:block">
                   <TabsList className="h-8">
                     <TabsTrigger value="bar" className="h-6 px-2"><BarChart3 className="h-4 w-4" /></TabsTrigger>
                     <TabsTrigger value="line" className="h-6 px-2"><LineChartIcon className="h-4 w-4" /></TabsTrigger>
@@ -454,7 +505,7 @@ export default function ReportsPage() {
                   </TabsList>
                 </Tabs>
                 <Select value={String(selectedYear)} onValueChange={(val) => setSelectedYear(Number(val))}>
-                  <SelectTrigger className="w-[100px]">
+                  <SelectTrigger className="w-[90px]">
                     <SelectValue placeholder="Year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -466,7 +517,7 @@ export default function ReportsPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[280px] md:h-[350px]">
             {yearlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'bar' ? (
@@ -515,11 +566,11 @@ export default function ReportsPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Payment Distribution</CardTitle>
-            <CardDescription>Overall paid vs outstanding breakdown</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base md:text-lg">Payment Distribution</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Paid vs outstanding breakdown</CardDescription>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[280px] md:h-[350px]">
             {paymentStatusData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -549,14 +600,14 @@ export default function ReportsPage() {
                   <div className="w-3 h-3 rounded-full bg-green-500" />
                   <span className="text-sm text-muted-foreground">Paid</span>
                 </div>
-                <p className="font-bold text-lg">Rs. {overallStats.totalPaid.toFixed(0)}</p>
+                <p className="font-bold text-sm md:text-lg">₹{overallStats.totalPaid.toFixed(0)}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center gap-2 justify-center">
                   <div className="w-3 h-3 rounded-full bg-orange-500" />
                   <span className="text-sm text-muted-foreground">Outstanding</span>
                 </div>
-                <p className="font-bold text-lg">Rs. {overallStats.totalOutstanding.toFixed(0)}</p>
+                <p className="font-bold text-sm md:text-lg">₹{overallStats.totalOutstanding.toFixed(0)}</p>
               </div>
             </div>
           </CardContent>
@@ -564,44 +615,44 @@ export default function ReportsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
+        <CardHeader className="pb-2 md:pb-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div>
-              <CardTitle>Customers with Outstanding Balances</CardTitle>
-              <CardDescription>List of customers who have unpaid bills.</CardDescription>
+              <CardTitle className="text-base md:text-lg">Outstanding Balances</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Customers with unpaid bills</CardDescription>
             </div>
             {customerBalances.length > 0 && (
-              <Button onClick={handleDownloadBalances} variant="outline" size="sm">
+              <Button onClick={handleDownloadBalances} variant="outline" size="sm" className="w-full sm:w-auto">
                 <Download className="mr-2 h-4 w-4" /> Download
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
           {customerBalances.length > 0 ? (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer Name</TableHead>
-                  <TableHead className="text-right">Outstanding Amount</TableHead>
+                  <TableHead className="text-xs md:text-sm">Customer</TableHead>
+                  <TableHead className="text-right text-xs md:text-sm">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {customerBalances.map(cb => (
                   <TableRow key={cb.id}>
-                    <TableCell>{cb.name}</TableCell>
-                    <TableCell className="text-right font-medium"><span className="font-mono">₹</span> {cb.outstanding.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs md:text-sm py-2 md:py-3">{cb.name}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm py-2 md:py-3">₹{cb.outstanding.toFixed(0)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-10">No customers with outstanding balances. Great job!</p>
+            <p className="text-muted-foreground text-center py-10 text-sm">No customers with outstanding balances. Great job!</p>
           )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

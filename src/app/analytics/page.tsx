@@ -52,40 +52,39 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="container py-8 space-y-8">
+    <div className="p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Message Analytics</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl md:text-3xl font-bold">Message Analytics</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           Track and analyze your SMS and WhatsApp message usage
         </p>
       </div>
 
       {/* Overview Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <Card className="p-3 md:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Messages</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalMessages || 0}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="p-0">
+            <div className="text-xl md:text-2xl font-bold">{stats?.totalMessages || 0}</div>
+            <p className="text-xs text-muted-foreground truncate">
               {stats?.smsCount || 0} SMS, {stats?.whatsappCount || 0} WhatsApp
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+        <Card className="p-3 md:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Success Rate</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600 hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="p-0">
+            <div className="text-xl md:text-2xl font-bold">
               {stats?.totalMessages
                 ? Math.round((stats.successCount / stats.totalMessages) * 100)
-                : 0}
-              %
+                : 0}%
             </div>
             <p className="text-xs text-muted-foreground">
               {stats?.successCount || 0} successful
@@ -93,24 +92,24 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed Messages</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
+        <Card className="p-3 md:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Failed</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600 hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.failedCount || 0}</div>
+          <CardContent className="p-0">
+            <div className="text-xl md:text-2xl font-bold">{stats?.failedCount || 0}</div>
             <p className="text-xs text-muted-foreground">Need attention</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estimated Cost</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="p-3 md:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Est. Cost</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Rs.{stats?.totalCost.toFixed(2) || '0.00'}</div>
+          <CardContent className="p-0">
+            <div className="text-xl md:text-2xl font-bold">₹{stats?.totalCost.toFixed(2) || '0.00'}</div>
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -118,24 +117,27 @@ export default function AnalyticsPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">
-            <PieChart className="h-4 w-4 mr-2" />
-            Overview
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs md:text-sm">
+            <PieChart className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Stats</span>
           </TabsTrigger>
-          <TabsTrigger value="recent">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Recent Messages
+          <TabsTrigger value="recent" className="text-xs md:text-sm">
+            <MessageSquare className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Recent Messages</span>
+            <span className="sm:hidden">Recent</span>
           </TabsTrigger>
-          <TabsTrigger value="customers">
-            <Users className="h-4 w-4 mr-2" />
-            Top Customers
+          <TabsTrigger value="customers" className="text-xs md:text-sm">
+            <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Top Customers</span>
+            <span className="sm:hidden">Top</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             {/* Message Breakdown by Purpose */}
             <Card>
               <CardHeader>
@@ -168,11 +170,11 @@ export default function AnalyticsPage() {
                 <div className="space-y-2">
                   {dailyCount.slice(-7).map((day) => (
                     <div key={day.date} className="flex items-center justify-between">
-                      <span className="text-sm">{format(new Date(day.date), 'MMM dd')}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">SMS: {day.sms}</span>
-                        <span className="text-xs text-muted-foreground">WA: {day.whatsapp}</span>
-                        <Badge>{day.count}</Badge>
+                      <span className="text-xs md:text-sm">{format(new Date(day.date), 'MMM dd')}</span>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <span className="text-xs text-muted-foreground">S:{day.sms}</span>
+                        <span className="text-xs text-muted-foreground">W:{day.whatsapp}</span>
+                        <Badge className="text-xs">{day.count}</Badge>
                       </div>
                     </div>
                   ))}
@@ -198,12 +200,12 @@ export default function AnalyticsPage() {
                   recentMessages.map((message) => (
                     <div
                       key={message.id}
-                      className="flex items-start justify-between border-b pb-3 last:border-0"
+                      className="flex flex-col sm:flex-row sm:items-start justify-between border-b pb-3 last:border-0 gap-2"
                     >
-                      <div className="space-y-1">
-                        <p className="font-medium">{message.customerName}</p>
-                        <p className="text-sm text-muted-foreground">{message.phoneNumber}</p>
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <p className="font-medium text-sm md:text-base truncate">{message.customerName}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{message.phoneNumber}</p>
+                        <div className="flex items-center gap-1 flex-wrap">
                           <Badge variant="outline" className="text-xs">
                             {message.messageType}
                           </Badge>
@@ -212,15 +214,15 @@ export default function AnalyticsPage() {
                           </Badge>
                         </div>
                       </div>
-                      <div className="text-right space-y-1">
-                        <Badge variant={message.status === 'SUCCESS' ? 'default' : 'destructive'}>
+                      <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                        <Badge variant={message.status === 'SUCCESS' ? 'default' : 'destructive'} className="text-xs">
                           {message.status}
                         </Badge>
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(message.createdAt), 'MMM dd, HH:mm')}
                         </p>
                         {message.amount && (
-                          <p className="text-sm font-medium">Rs.{message.amount.toFixed(2)}</p>
+                          <p className="text-xs md:text-sm font-medium">₹{message.amount.toFixed(0)}</p>
                         )}
                       </div>
                     </div>
@@ -248,18 +250,18 @@ export default function AnalyticsPage() {
                   topCustomers.map((customer, index) => (
                     <div
                       key={`${customer.customerName}-${customer.phoneNumber}`}
-                      className="flex items-center justify-between border-b pb-3 last:border-0"
+                      className="flex items-center justify-between border-b pb-3 last:border-0 gap-2"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                      <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                        <div className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs md:text-sm flex-shrink-0">
                           {index + 1}
                         </div>
-                        <div>
-                          <p className="font-medium">{customer.customerName}</p>
-                          <p className="text-sm text-muted-foreground">{customer.phoneNumber}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm md:text-base truncate">{customer.customerName}</p>
+                          <p className="text-xs md:text-sm text-muted-foreground">{customer.phoneNumber}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary">{customer.messageCount} messages</Badge>
+                      <Badge variant="secondary" className="text-xs flex-shrink-0">{customer.messageCount} msg</Badge>
                     </div>
                   ))
                 ) : (
