@@ -159,7 +159,7 @@ export default function CustomerDetailPage() {
       // Import the service dynamically
       const { sendPaymentNotification, getPaymentLinks } = await import('@/lib/api/services/notification.service');
       
-      // Get payment links
+      // Get payment links first
       const links = await getPaymentLinks(expenseId);
       
       if (customer?.phone) {
@@ -178,12 +178,15 @@ export default function CustomerDetailPage() {
           duration: 10000,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending payment link:', error);
+      // Show the specific error message from backend
+      const errorMessage = error?.message || 'Failed to send payment link';
       toast({ 
         title: "Error", 
-        description: "Failed to send payment link. Check service configuration.", 
-        variant: "destructive" 
+        description: errorMessage, 
+        variant: "destructive",
+        duration: 6000,
       });
     }
   };

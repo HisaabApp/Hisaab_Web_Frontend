@@ -142,14 +142,18 @@ apiClient.interceptors.response.use(
 // API Error Handler - Extract meaningful error messages
 export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string; error?: string }>;
+    const axiosError = error as AxiosError<{ message?: string; error?: string; remaining?: number; limit?: number; plan?: string }>;
     
-    // Server returned error message
+    // Server returned error message - use it directly
     if (axiosError.response?.data?.message) {
       return axiosError.response.data.message;
     }
     
     if (axiosError.response?.data?.error) {
+      // Special handling for quota exceeded
+      if (axiosError.response.data.error === 'Message quota exceeded' && axiosError.response.data.limit) {
+        return `Message limit reached! You've used all ${axiosError.response.data.limit} messages on your ${axiosError.response.data.plan || 'current'} plan. Upgrade to send more.`;
+      }
       return axiosError.response.data.error;
     }
 
@@ -167,7 +171,7 @@ export const handleApiError = (error: unknown): string => {
       case 403:
         return 'You do not have permission to perform this action.';
       case 404:
-        return 'Resource not found.';
+        return 'Resource not found or access denied.';
       case 409:
         return 'Conflict. This record may already exist.';
       case 422:

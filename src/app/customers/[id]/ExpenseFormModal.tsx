@@ -44,15 +44,15 @@ const months = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: form
 const expenseSchema = z.object({
   amount: z.preprocess(
     (val) => parseFloat(String(val)),
-    z.number().positive({ message: "Amount must be positive." })
+    z.number().min(0, { message: "Amount cannot be negative." })
   ),
   year: z.preprocess(
     (val) => parseInt(String(val), 10),
-    z.number().int().min(currentYear - 4).max(currentYear)
+    z.number().int().min(2020, { message: "Year must be 2020 or later." }).max(currentYear + 1, { message: "Invalid year." })
   ),
   month: z.preprocess(
     (val) => parseInt(String(val), 10),
-    z.number().int().min(1).max(12)
+    z.number().int().min(1, { message: "Invalid month." }).max(12, { message: "Invalid month." })
   ),
   paid: z.boolean().default(false),
 });

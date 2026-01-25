@@ -9,11 +9,11 @@ export interface Plan {
 
 export interface SubscriptionInfo {
   plan: string;
-  planExpiry: Date | null;
+  planExpiry: string | null;
   messageLimit: number;
   messagesUsed: number;
   remaining: number;
-  resetDate: Date;
+  resetDate: string;
 }
 
 export const subscriptionService = {

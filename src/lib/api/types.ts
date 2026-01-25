@@ -22,6 +22,11 @@ export interface User {
   businessName?: string;
   address?: string;
   logo?: string;
+  // Subscription & Quota fields
+  subscription?: 'FREE' | 'BASIC' | 'PREMIUM';
+  messageLimit?: number;
+  messagesUsed?: number;
+  subscriptionExpiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }

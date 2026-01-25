@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone } from 'lucide-react';
+import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone, CreditCard } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { Progress } from '@/components/ui/progress';
 
 export default function SettingsPage() {
   const { user, updateProfile } = useAuth();
@@ -157,21 +158,22 @@ export default function SettingsPage() {
       )}
 
       <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full sm:w-auto">
+        <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
           <TabsTrigger value="profile" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
             <User className="h-4 w-4" />
-            <span className="hidden xs:inline">Profile</span>
-            <span className="xs:hidden">Info</span>
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
+            <CreditCard className="h-4 w-4" />
+            <span className="hidden sm:inline">Plan</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
             <Bell className="h-4 w-4" />
-            <span className="hidden xs:inline">Notifications</span>
-            <span className="xs:hidden">Alerts</span>
+            <span className="hidden sm:inline">Alerts</span>
           </TabsTrigger>
           <TabsTrigger value="password" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
             <Lock className="h-4 w-4" />
-            <span className="hidden xs:inline">Password</span>
-            <span className="xs:hidden">Pass</span>
+            <span className="hidden sm:inline">Password</span>
           </TabsTrigger>
         </TabsList>
 
@@ -307,6 +309,116 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="subscription">
+          <div className="space-y-4">
+            {/* Current Plan */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Current Plan
+                </CardTitle>
+                <CardDescription>
+                  Your message quota and subscription details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Plan</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    user?.subscription === 'PREMIUM' ? 'bg-purple-100 text-purple-800' :
+                    user?.subscription === 'BASIC' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {user?.subscription || 'FREE'}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Messages Used</span>
+                    <span className="font-medium">
+                      {user?.messagesUsed || 0} / {user?.messageLimit || 10}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={((user?.messagesUsed || 0) / (user?.messageLimit || 10)) * 100} 
+                    className="h-2"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {(user?.messageLimit || 10) - (user?.messagesUsed || 0)} messages remaining this month
+                  </p>
+                </div>
+
+                {user?.subscriptionExpiresAt && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Expires</span>
+                    <span className="font-medium">
+                      {new Date(user.subscriptionExpiresAt).toLocaleDateString('en-IN')}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Upgrade Plans */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upgrade Your Plan</CardTitle>
+                <CardDescription>
+                  Get more messages and features
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Basic Plan */}
+                  <div className={`border rounded-lg p-4 ${user?.subscription === 'BASIC' ? 'border-blue-500 bg-blue-50' : ''}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold">Basic</h4>
+                      <span className="text-lg font-bold">₹299<span className="text-xs font-normal">/mo</span></span>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1 mb-4">
+                      <li>✓ 100 messages/month</li>
+                      <li>✓ SMS & WhatsApp</li>
+                      <li>✓ Payment Links</li>
+                    </ul>
+                    {user?.subscription !== 'BASIC' && user?.subscription !== 'PREMIUM' && (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Coming Soon
+                      </Button>
+                    )}
+                    {user?.subscription === 'BASIC' && (
+                      <span className="text-xs text-blue-600 font-medium">Current Plan</span>
+                    )}
+                  </div>
+
+                  {/* Premium Plan */}
+                  <div className={`border rounded-lg p-4 ${user?.subscription === 'PREMIUM' ? 'border-purple-500 bg-purple-50' : ''}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold">Premium</h4>
+                      <span className="text-lg font-bold">₹999<span className="text-xs font-normal">/mo</span></span>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1 mb-4">
+                      <li>✓ 500 messages/month</li>
+                      <li>✓ SMS & WhatsApp</li>
+                      <li>✓ Payment Links</li>
+                      <li>✓ Priority Support</li>
+                    </ul>
+                    {user?.subscription !== 'PREMIUM' && (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Coming Soon
+                      </Button>
+                    )}
+                    {user?.subscription === 'PREMIUM' && (
+                      <span className="text-xs text-purple-600 font-medium">Current Plan</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="notifications">
