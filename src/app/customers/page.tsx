@@ -231,10 +231,31 @@ export default function CustomersPage() {
   const handleSendReminder = async (customerId: string, customerName: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     try {
-      const result = await notificationsService.sendNotification(customerId, 'sms');
-      if (result.success) toast({ title: "Sent", description: `Reminder sent to ${customerName}` });
+      // Find the most recent unpaid expense for this customer
+      const unpaidExpense = expenses
+        .filter(exp => exp.customerId === customerId && !exp.paid)
+        .sort((a, b) => {
+          if (a.year !== b.year) return b.year - a.year;
+          return b.month - a.month;
+        })[0];
+
+      if (!unpaidExpense) {
+        toast({ 
+          title: "No Unpaid Bills", 
+          description: `${customerName} has no unpaid expenses.`,
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      const result = await notificationsService.sendPaymentNotification(unpaidExpense.id, 'sms');
+      if (result.success) {
+        toast({ title: "Sent", description: `Reminder sent to ${customerName}` });
+      } else {
+        toast({ title: "Failed", description: result.message || "Failed to send reminder", variant: "destructive" });
+      }
     } catch (err: any) {
-      toast({ title: "Failed", description: err.message, variant: "destructive" });
+      toast({ title: "Failed", description: err.message || "Failed to send reminder", variant: "destructive" });
     }
   };
 

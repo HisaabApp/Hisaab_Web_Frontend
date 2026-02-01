@@ -8,7 +8,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  BookOpen, 
   Users, 
   FileText,
   Bell,
@@ -24,6 +23,7 @@ import {
   IndianRupee
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
 
@@ -146,9 +146,13 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-white" />
-              </div>
+              <Image 
+                src="/icons/HisaabAApplogo.svg" 
+                alt="HisaabApp Logo" 
+                width={40} 
+                height={40}
+                className="w-10 h-10"
+              />
               <span className="text-xl font-bold text-gray-900">HisaabApp</span>
             </div>
             
@@ -413,9 +417,13 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-5 gap-8 mb-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <BookOpen className="h-5 w-5 text-white" />
-                </div>
+                <Image 
+                  src="/icons/HisaabAApplogo.svg" 
+                  alt="HisaabApp Logo" 
+                  width={32} 
+                  height={32}
+                  className="w-8 h-8"
+                />
                 <span className="text-xl font-bold">HisaabApp</span>
               </div>
               <p className="text-sm text-gray-400 max-w-xs">

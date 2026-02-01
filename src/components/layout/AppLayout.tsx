@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard } from 'lucide-react';
 import MobileNav from './MobileNav';
 import { NotificationBell } from '@/components/NotificationCenter';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader className="p-4">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <BookOpen className="h-8 w-8 text-primary" />
+            <Image 
+              src="/icons/HisaabAApplogo.svg" 
+              alt="HisaabApp Logo" 
+              width={32} 
+              height={32}
+              className="h-8 w-8"
+            />
             <h1 className="text-2xl font-headline font-semibold">HisaabApp</h1>
           </Link>
         </SidebarHeader>

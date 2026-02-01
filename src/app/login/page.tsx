@@ -13,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, AlertCircle, BookOpen, Phone, Mail, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, Phone, Mail, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { login, sendOTP, verifyOTP, resendOTP, error, isLoading, clearError } = useAuth();
@@ -145,8 +146,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-3 sm:p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-2 sm:space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6">
-          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <BookOpen className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
+          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
+            <Image 
+              src="/icons/HisaabAApplogo.svg" 
+              alt="HisaabApp Logo" 
+              width={64} 
+              height={64}
+              className="w-12 h-12 sm:w-16 sm:h-16"
+            />
           </div>
           <CardTitle className="text-2xl sm:text-3xl font-bold">Welcome Back</CardTitle>
           <CardDescription className="text-sm sm:text-base">

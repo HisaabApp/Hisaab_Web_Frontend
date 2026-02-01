@@ -12,8 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, BookOpen } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function RegisterPage() {
   const { register, error, isLoading, clearError } = useAuth();
@@ -74,8 +75,14 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <BookOpen className="w-10 h-10 text-white" />
+          <div className="mx-auto w-16 h-16 flex items-center justify-center">
+            <Image 
+              src="/icons/HisaabAApplogo.svg" 
+              alt="HisaabApp Logo" 
+              width={64} 
+              height={64}
+              className="w-16 h-16"
+            />
           </div>
           <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
           <CardDescription className="text-base">
