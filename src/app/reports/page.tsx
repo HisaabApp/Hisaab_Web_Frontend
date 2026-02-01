@@ -570,46 +570,60 @@ export default function ReportsPage() {
             <CardTitle className="text-base md:text-lg">Payment Distribution</CardTitle>
             <CardDescription className="text-xs md:text-sm">Paid vs outstanding breakdown</CardDescription>
           </CardHeader>
-          <CardContent className="h-[280px] md:h-[350px]">
+          <CardContent className="h-[320px] md:h-[380px] flex flex-col">
             {paymentStatusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={paymentStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {paymentStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `Rs. ${value.toFixed(0)}`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-            ) : ( <p className="text-muted-foreground text-center pt-10">No payment data available.</p>)}
-            
-            {/* Summary below chart */}
-            <div className="flex justify-center gap-8 mt-4">
-              <div className="text-center">
-                <div className="flex items-center gap-2 justify-center">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm text-muted-foreground">Paid</span>
+              <>
+                <div className="flex-1 min-h-[180px] md:min-h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={paymentStatusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {paymentStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number) => `₹${value.toFixed(0)}`}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                      />
+                      <Legend 
+                        verticalAlign="bottom"
+                        height={36}
+                        formatter={(value) => <span className="text-sm">{value}</span>}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-                <p className="font-bold text-sm md:text-lg">₹{overallStats.totalPaid.toFixed(0)}</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center gap-2 justify-center">
-                  <div className="w-3 h-3 rounded-full bg-orange-500" />
-                  <span className="text-sm text-muted-foreground">Outstanding</span>
+                {/* Summary below chart */}
+                <div className="flex justify-center gap-6 sm:gap-8 pt-2 border-t mt-2">
+                  <div className="text-center">
+                    <div className="flex items-center gap-1.5 sm:gap-2 justify-center">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">Paid</span>
+                    </div>
+                    <p className="font-bold text-sm md:text-lg">₹{overallStats.totalPaid.toFixed(0)}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1.5 sm:gap-2 justify-center">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-500" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">Outstanding</span>
+                    </div>
+                    <p className="font-bold text-sm md:text-lg">₹{overallStats.totalOutstanding.toFixed(0)}</p>
+                  </div>
                 </div>
-                <p className="font-bold text-sm md:text-lg">₹{overallStats.totalOutstanding.toFixed(0)}</p>
-              </div>
-            </div>
+              </>
+            ) : (
+              <p className="text-muted-foreground text-center pt-10">No payment data available.</p>
+            )}
           </CardContent>
         </Card>
       </div>

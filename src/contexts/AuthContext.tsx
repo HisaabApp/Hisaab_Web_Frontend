@@ -1,7 +1,7 @@
 /**
  * Authentication Context
  * Enterprise-grade authentication management with:
- * - User state management
+ * - User state management (email/password + OTP login)
  * - Token persistence
  * - Auto-login on page load
  * - Protected route handling
@@ -14,7 +14,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { authService } from '@/lib/api/services/auth.service';
 import { profileService } from '@/lib/api/services/profile.service';
 import { setAuthToken, getAuthToken } from '@/lib/api/client';
-import { User, LoginCredentials, RegisterData, UpdateProfileData } from '@/lib/api/types';
+import { User, LoginCredentials, RegisterData, UpdateProfileData, SendOTPData, VerifyOTPData, VerifyOTPResponse } from '@/lib/api/types';
 import config from '@/lib/config';
 
 interface AuthContextType {
@@ -23,6 +23,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<void>;
+  sendOTP: (data: SendOTPData) => Promise<{ success: boolean; message: string; expiresIn?: number }>;
+  verifyOTP: (data: VerifyOTPData) => Promise<VerifyOTPResponse>;
+  resendOTP: (data: SendOTPData) => Promise<{ success: boolean; message: string }>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
@@ -128,6 +131,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
+   * Send OTP to phone number
+   */
+  const sendOTP = async (data: SendOTPData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await authService.sendOTP(data);
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send OTP';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Verify OTP and login/register
+   */
+  const verifyOTP = async (data: VerifyOTPData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await authService.verifyOTP(data);
+      
+      if (response.success && response.data) {
+        const { token, user: userData } = response.data;
+        
+        // Set token in axios client and localStorage
+        setAuthToken(token);
+        
+        // Set user state
+        setUser(userData);
+        
+        // Store user in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(config.auth.userKey, JSON.stringify(userData));
+        }
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      }
+      
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'OTP verification failed';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Resend OTP
+   */
+  const resendOTP = async (data: SendOTPData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await authService.resendOTP(data);
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to resend OTP';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
    * Register new user
    */
   const register = async (data: RegisterData) => {
@@ -217,6 +296,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     error,
     login,
+    sendOTP,
+    verifyOTP,
+    resendOTP,
     register,
     logout,
     updateProfile,

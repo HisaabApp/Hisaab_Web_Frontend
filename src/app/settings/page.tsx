@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { profileService } from '@/lib/api/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone, CreditCard } from 'lucide-react';
+import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone, CreditCard, Phone, ShieldCheck, Unlink } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Progress } from '@/components/ui/progress';
 
@@ -22,6 +22,14 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(user?.logo || null);
   
+  // Phone linking state
+  const [linkPhone, setLinkPhone] = useState('');
+  const [linkOtp, setLinkOtp] = useState('');
+  const [phoneLinkStep, setPhoneLinkStep] = useState<'idle' | 'otp-sent' | 'verifying'>('idle');
+  const [phoneCountdown, setPhoneCountdown] = useState(0);
+  const [phoneError, setPhoneError] = useState('');
+  const [phoneSuccess, setPhoneSuccess] = useState('');
+
   // Push notifications hook
   const {
     isSupported: pushSupported,
@@ -33,6 +41,14 @@ export default function SettingsPage() {
     disablePushNotifications,
     updatePreferences: updateNotificationPrefs,
   } = usePushNotifications();
+
+  // Phone linking countdown timer
+  useEffect(() => {
+    if (phoneCountdown > 0) {
+      const timer = setTimeout(() => setPhoneCountdown(phoneCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [phoneCountdown]);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -134,6 +150,91 @@ export default function SettingsPage() {
         type: 'error', 
         text: error instanceof Error ? error.message : 'Failed to change password' 
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle phone link - send OTP
+  const handleSendLinkOTP = async () => {
+    setPhoneError('');
+    setPhoneSuccess('');
+    
+    if (!linkPhone) {
+      setPhoneError('Phone number is required');
+      return;
+    }
+
+    const cleanPhone = linkPhone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setPhoneError('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await profileService.linkPhone({ phone: cleanPhone });
+      if (response.success) {
+        setPhoneLinkStep('otp-sent');
+        setPhoneCountdown(60);
+        setPhoneSuccess('OTP sent successfully');
+      }
+    } catch (error) {
+      setPhoneError(error instanceof Error ? error.message : 'Failed to send OTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle phone link - verify OTP
+  const handleVerifyLinkOTP = async () => {
+    setPhoneError('');
+    setPhoneSuccess('');
+
+    if (!linkOtp || linkOtp.length !== 6) {
+      setPhoneError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    const cleanPhone = linkPhone.replace(/\D/g, '');
+    setPhoneLinkStep('verifying');
+    setIsLoading(true);
+    
+    try {
+      const response = await profileService.verifyPhone({ phone: cleanPhone, otp: linkOtp });
+      if (response.success) {
+        setPhoneSuccess('Phone number linked successfully!');
+        setPhoneLinkStep('idle');
+        setLinkPhone('');
+        setLinkOtp('');
+        // Refresh user data
+        window.location.reload();
+      }
+    } catch (error) {
+      setPhoneError(error instanceof Error ? error.message : 'Failed to verify OTP');
+      setPhoneLinkStep('otp-sent');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle phone unlink
+  const handleUnlinkPhone = async () => {
+    if (!confirm('Are you sure you want to unlink your phone number?')) return;
+    
+    setPhoneError('');
+    setPhoneSuccess('');
+    setIsLoading(true);
+    
+    try {
+      const response = await profileService.unlinkPhone();
+      if (response.success) {
+        setPhoneSuccess('Phone number unlinked successfully!');
+        // Refresh user data
+        window.location.reload();
+      }
+    } catch (error) {
+      setPhoneError(error instanceof Error ? error.message : 'Failed to unlink phone');
     } finally {
       setIsLoading(false);
     }
@@ -603,60 +704,225 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="password">
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password *</Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    required
-                    placeholder="Enter your current password"
-                  />
-                </div>
+          <div className="space-y-4">
+            {/* Phone Link Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Phone Login
+                </CardTitle>
+                <CardDescription>
+                  Link your phone number to login with OTP
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {phoneError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{phoneError}</AlertDescription>
+                  </Alert>
+                )}
+                {phoneSuccess && (
+                  <Alert className="mb-4 border-green-200 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">{phoneSuccess}</AlertDescription>
+                  </Alert>
+                )}
 
-                <Separator />
+                {user?.phoneVerified && user?.phone ? (
+                  // Phone is linked
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <ShieldCheck className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-800">Phone Verified</p>
+                        <p className="text-sm text-green-600">{user.phone}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      You can use this phone number to login with OTP.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleUnlinkPhone}
+                      disabled={isLoading || !user?.email}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Unlink className="h-4 w-4 mr-2" />
+                      Unlink Phone
+                    </Button>
+                    {!user?.email && (
+                      <p className="text-xs text-muted-foreground">
+                        Add email and password before unlinking phone.
+                      </p>
+                    )}
+                  </div>
+                ) : phoneLinkStep === 'idle' ? (
+                  // Enter phone number
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="linkPhone">Phone Number</Label>
+                      <div className="flex gap-2">
+                        <div className="flex items-center px-3 bg-gray-100 dark:bg-gray-800 rounded-md border">
+                          <span className="text-sm text-muted-foreground">+91</span>
+                        </div>
+                        <Input
+                          id="linkPhone"
+                          type="tel"
+                          placeholder="9876543210"
+                          value={linkPhone}
+                          onChange={(e) => setLinkPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          disabled={isLoading}
+                          maxLength={10}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleSendLinkOTP}
+                      disabled={isLoading || linkPhone.length < 10}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending OTP...
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="mr-2 h-4 w-4" />
+                          Send OTP
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  // Verify OTP
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      OTP sent to <span className="font-medium">+91 {linkPhone}</span>
+                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="linkOtp">Enter OTP</Label>
+                      <Input
+                        id="linkOtp"
+                        type="text"
+                        placeholder="123456"
+                        value={linkOtp}
+                        onChange={(e) => setLinkOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        disabled={isLoading}
+                        maxLength={6}
+                        className="text-center text-xl tracking-widest max-w-[200px]"
+                      />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        onClick={handleVerifyLinkOTP}
+                        disabled={isLoading || linkOtp.length !== 6}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          'Verify & Link'
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setPhoneLinkStep('idle');
+                          setLinkOtp('');
+                          setPhoneError('');
+                        }}
+                        disabled={isLoading}
+                      >
+                        Change Number
+                      </Button>
+                    </div>
+                    <div>
+                      {phoneCountdown > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Resend OTP in {phoneCountdown}s
+                        </p>
+                      ) : (
+                        <Button
+                          variant="link"
+                          onClick={handleSendLinkOTP}
+                          disabled={isLoading}
+                          className="p-0 h-auto"
+                        >
+                          Resend OTP
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password *</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    required
-                    placeholder="Enter new password (min 6 characters)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password *</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    required
-                    placeholder="Confirm your new password"
-                  />
-                </div>
-
-                <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {/* Password Change Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
                   Change Password
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                </CardTitle>
+                <CardDescription>
+                  Update your password to keep your account secure
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password *</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      required
+                      placeholder="Enter your current password"
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password *</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      required
+                      placeholder="Enter new password (min 6 characters)"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      required
+                      placeholder="Confirm your new password"
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Change Password
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

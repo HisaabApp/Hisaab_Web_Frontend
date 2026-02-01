@@ -17,8 +17,9 @@ export interface ApiResponse<T = any> {
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
+  phoneVerified?: boolean;
   businessName?: string;
   address?: string;
   logo?: string;
@@ -50,6 +51,32 @@ export interface RegisterData {
   password: string;
   phone?: string;
   businessName?: string;
+}
+
+// OTP Authentication Types
+export interface SendOTPData {
+  phone: string;
+}
+
+export interface VerifyOTPData {
+  phone: string;
+  otp: string;
+}
+
+export interface SendOTPResponse {
+  success: boolean;
+  message: string;
+  expiresIn?: number;
+}
+
+export interface VerifyOTPResponse {
+  success: boolean;
+  message: string;
+  isNewUser?: boolean;
+  data?: {
+    token: string;
+    user: User;
+  };
 }
 
 export interface UpdateProfileData {

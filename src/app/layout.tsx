@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/components/NotificationCenter';
 import { OnlineStatusIndicator } from '@/components/SyncStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ChunkErrorHandler } from '@/components/ChunkErrorHandler';
 import RouteChangeListener from '@/components/RouteChangeListener';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { InstallPrompt, IOSInstallInstructions } from '@/components/InstallPrompt';
@@ -60,6 +61,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ServiceWorkerRegistration />
+        <ChunkErrorHandler />
         <ErrorBoundary>
           <AuthProvider>
             <AppProvider>
