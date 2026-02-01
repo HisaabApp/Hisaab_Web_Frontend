@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard } from 'lucide-react';
 import MobileNav from './MobileNav';
 import { NotificationBell } from '@/components/NotificationCenter';
+import BranchSelector from '@/components/BranchSelector';
 import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
@@ -66,7 +67,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
       <Sidebar>
-        <SidebarHeader className="p-4">
+        <SidebarHeader className="p-4 space-y-3">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image 
               src="/icons/HisaabAApplogo.svg" 
@@ -77,6 +78,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             />
             <h1 className="text-2xl font-headline font-semibold">HisaabApp</h1>
           </Link>
+          {/* Branch Selector */}
+          <BranchSelector />
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>

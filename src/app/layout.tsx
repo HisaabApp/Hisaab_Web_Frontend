@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import AppLayout from '@/components/layout/AppLayout';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { BranchProvider } from '@/contexts/BranchContext';
 import { NotificationProvider } from '@/components/NotificationCenter';
 import { OnlineStatusIndicator } from '@/components/SyncStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -65,16 +66,18 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <AppProvider>
-              <NotificationProvider>
-                <RouteChangeListener />
-                <AppLayout>
-                  {children}
-                </AppLayout>
-                <OnlineStatusIndicator />
-                <InstallPrompt />
-                <IOSInstallInstructions />
-                <Toaster />
-              </NotificationProvider>
+              <BranchProvider>
+                <NotificationProvider>
+                  <RouteChangeListener />
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                  <OnlineStatusIndicator />
+                  <InstallPrompt />
+                  <IOSInstallInstructions />
+                  <Toaster />
+                </NotificationProvider>
+              </BranchProvider>
             </AppProvider>
           </AuthProvider>
         </ErrorBoundary>

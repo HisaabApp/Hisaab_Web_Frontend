@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import PageHeader from '@/components/PageHeader';
+import PendingInvitations from '@/components/PendingInvitations';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -255,6 +256,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Pending Invitations Banner */}
+      <PendingInvitations />
+      
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

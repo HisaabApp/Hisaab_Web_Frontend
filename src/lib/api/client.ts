@@ -53,12 +53,22 @@ apiClient.interceptors.request.use(
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Inject branch ID from localStorage if available and valid
+    if (typeof window !== 'undefined') {
+      const selectedBranchId = localStorage.getItem('selectedBranchId');
+      // Only send branch ID if it's set and not null/undefined (null means "All Branches")
+      if (selectedBranchId && selectedBranchId !== 'null' && selectedBranchId !== 'undefined' && requestConfig.headers) {
+        requestConfig.headers['x-branch-id'] = selectedBranchId;
+      }
+    }
+
     // Log request in debug mode
     if (config.api.debug) {
       console.log('🚀 API Request:', {
         method: requestConfig.method?.toUpperCase(),
         url: requestConfig.url,
         data: requestConfig.data,
+        branchId: requestConfig.headers?.['x-branch-id']
       });
     }
 

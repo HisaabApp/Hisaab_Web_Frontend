@@ -35,7 +35,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/login', '/register'];
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/offline'];
+
+// Route prefixes that are public (for dynamic routes)
+const PUBLIC_ROUTE_PREFIXES = ['/invite/'];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,6 +46,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Check if current path is a public route
+  const isPublicRoute = (path: string) => {
+    if (PUBLIC_ROUTES.includes(path)) return true;
+    return PUBLIC_ROUTE_PREFIXES.some(prefix => path.startsWith(prefix));
+  };
 
   // Initialize auth state on mount
   useEffect(() => {
@@ -52,9 +61,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Redirect logic based on auth state
   useEffect(() => {
     if (!isLoading) {
-      const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+      const isPublic = isPublicRoute(pathname);
       
-      if (!user && !isPublicRoute) {
+      if (!user && !isPublic) {
         // Not authenticated and trying to access protected route
         router.push('/login');
       } else if (user && (pathname === '/login' || pathname === '/register')) {

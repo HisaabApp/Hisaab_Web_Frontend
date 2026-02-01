@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone, CreditCard, Phone, ShieldCheck, Unlink } from 'lucide-react';
+import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, BellOff, BellRing, Smartphone, CreditCard, Phone, ShieldCheck, Unlink, Building2 } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Progress } from '@/components/ui/progress';
 
@@ -259,10 +259,14 @@ export default function SettingsPage() {
       )}
 
       <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
+        <TabsList className="w-full sm:w-auto grid grid-cols-5 sm:flex">
           <TabsTrigger value="profile" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="organization" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Branches</span>
           </TabsTrigger>
           <TabsTrigger value="subscription" className="gap-1 sm:gap-2 flex-1 sm:flex-none">
             <CreditCard className="h-4 w-4" />
@@ -410,6 +414,59 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="organization">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Organization & Branches
+                </CardTitle>
+                <CardDescription>
+                  Manage your business locations and team members
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <p className="mb-4">
+                    If you have multiple shops or locations, you can manage them all from one account. 
+                    Add branches for each location and assign team members to specific branches.
+                  </p>
+                  <div className="space-y-2 mb-4">
+                    <h4 className="font-semibold text-foreground">Features:</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Create multiple branches/locations</li>
+                      <li>Assign staff to specific branches</li>
+                      <li>View combined or branch-specific reports</li>
+                      <li>Switch between branches easily using the sidebar selector</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    onClick={() => window.location.href = '/settings/organization'}
+                    className="w-full sm:w-auto"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Manage Branches
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.location.href = '/settings/organization/team'}
+                    className="w-full sm:w-auto"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Manage Team
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="subscription">
