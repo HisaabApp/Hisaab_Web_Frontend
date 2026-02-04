@@ -3,11 +3,13 @@
  * Centralized configuration for environment variables and app settings
  */
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export const config = {
   api: {
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
-    timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000'),
-    debug: process.env.NEXT_PUBLIC_API_DEBUG === 'true',
+    timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000'), // 10 seconds (was 30)
+    debug: isDev && process.env.NEXT_PUBLIC_API_DEBUG === 'true', // Only in dev + explicit flag
   },
   auth: {
     tokenKey: 'hisaabapp_auth_token',

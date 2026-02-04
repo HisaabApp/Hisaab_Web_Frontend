@@ -30,15 +30,21 @@ const isChunkLoadError = (error: unknown): boolean => {
 
 // Clear caches and force reload
 const forceReload = (): void => {
+  if (typeof window === 'undefined') return;
+  
+  const doReload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+  
   // Clear service worker cache
   if ('caches' in window) {
     caches.keys().then((names) => {
       Promise.all(names.map((name) => caches.delete(name)));
-    }).finally(() => {
-      window.location.reload();
-    });
+    }).finally(doReload);
   } else {
-    window.location.reload();
+    doReload();
   }
 };
 

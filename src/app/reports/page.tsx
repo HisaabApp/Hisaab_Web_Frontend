@@ -61,17 +61,6 @@ export default function ReportsPage() {
     setMounted(true);
   }, []);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Reports Debug:', { 
-      mounted, 
-      isLoadingCustomers, 
-      isLoadingExpenses, 
-      customersCount: customers.length, 
-      expensesCount: expenses.length 
-    });
-  }, [mounted, isLoadingCustomers, isLoadingExpenses, customers.length, expenses.length]);
-
   const isLoading = !mounted || isLoadingCustomers || isLoadingExpenses;
 
   // Calculate date range bounds

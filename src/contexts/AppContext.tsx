@@ -112,9 +112,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch data on auth
   useEffect(() => {
-    console.log('AppContext Auth Check:', { isAuthenticated, authLoading, dataLoaded });
     if (isAuthenticated && !authLoading && !dataLoaded) {
-      console.log('AppContext: Fetching all data...');
       fetchAllData();
     }
   }, [isAuthenticated, authLoading, dataLoaded]);
@@ -123,10 +121,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    * Fetch all data from API
    */
   const fetchAllData = async () => {
-    console.log('AppContext: Starting fetchAllData...');
     await Promise.all([fetchCustomers(), fetchExpenses()]);
     setDataLoaded(true);
-    console.log('AppContext: Data loaded complete');
   };
 
   /**
@@ -134,18 +130,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    */
   const fetchCustomers = async () => {
     if (!isAuthenticated) {
-      console.log('fetchCustomers: Not authenticated, skipping');
       return;
     }
     
     try {
       setIsLoadingCustomers(true);
-      console.log('fetchCustomers: Calling API...');
       const response = await customerService.getCustomers();
-      console.log('fetchCustomers: Response:', response);
       if (response.success && response.data) {
         setCustomers(response.data);
-        console.log('fetchCustomers: Set', response.data.length, 'customers');
       }
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -164,15 +156,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    */
   const fetchExpenses = async () => {
     if (!isAuthenticated) {
-      console.log('fetchExpenses: Not authenticated, skipping');
       return;
     }
     
     try {
       setIsLoadingExpenses(true);
-      console.log('fetchExpenses: Calling API...');
       const response = await expenseService.getExpenses();
-      console.log('fetchExpenses: Response:', response);
       if (response.success && response.data) {
         // Convert API response to local format
         const formattedExpenses: ExpenseRecord[] = response.data.map(exp => ({
@@ -182,11 +171,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           month: exp.month,
           amount: exp.amount,
           paid: exp.paid,
-          dateAdded: exp.createdAt,
-          lastUpdated: exp.updatedAt,
+          dateAdded: exp.createdAt || exp.dateAdded,
+          lastUpdated: exp.updatedAt || exp.lastUpdated,
         }));
         setExpenses(formattedExpenses);
-        console.log('fetchExpenses: Set', formattedExpenses.length, 'expenses');
       }
     } catch (error) {
       console.error('Error fetching expenses:', error);
@@ -211,15 +199,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addCustomer = useCallback(async (customerData: Omit<Customer, "id" | "createdAt">): Promise<Customer | null> => {
     try {
-      console.log('addCustomer: Creating customer...', customerData);
       const response = await customerService.createCustomer(customerData);
-      console.log('addCustomer: Response:', response);
       if (response.success && response.data) {
-        setCustomers(prev => {
-          const updated = [...prev, response.data!];
-          console.log('addCustomer: Updated customers count:', updated.length);
-          return updated;
-        });
+        setCustomers(prev => [...prev, response.data!]);
         toast({
           title: "Success",
           description: "Customer added successfully",
@@ -310,8 +292,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           month: response.data.month,
           amount: response.data.amount,
           paid: response.data.paid,
-          dateAdded: response.data.createdAt,
-          lastUpdated: response.data.updatedAt,
+          dateAdded: response.data.createdAt || response.data.dateAdded,
+          lastUpdated: response.data.updatedAt || response.data.lastUpdated,
         };
         setExpenses(prev => [...prev, newExpense]);
         toast({
@@ -344,8 +326,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           month: response.data.month,
           amount: response.data.amount,
           paid: response.data.paid,
-          dateAdded: response.data.createdAt,
-          lastUpdated: response.data.updatedAt,
+          dateAdded: response.data.createdAt || response.data.dateAdded,
+          lastUpdated: response.data.updatedAt || response.data.lastUpdated,
         };
         setExpenses(prev => prev.map(e => e.id === id ? updatedExpense : e));
         toast({
@@ -402,8 +384,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           month: response.data.month,
           amount: response.data.amount,
           paid: response.data.paid,
-          dateAdded: response.data.createdAt,
-          lastUpdated: response.data.updatedAt,
+          dateAdded: response.data.createdAt || response.data.dateAdded,
+          lastUpdated: response.data.updatedAt || response.data.lastUpdated,
         };
         setExpenses(prev => prev.map(e => e.id === id ? updatedExpense : e));
       }

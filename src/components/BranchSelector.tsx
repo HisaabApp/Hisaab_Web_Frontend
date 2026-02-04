@@ -50,7 +50,6 @@ export default function BranchSelector() {
       
       if (!orgsResponse.success || !orgsResponse.data || orgsResponse.data.length === 0) {
         // User has no organizations yet - this is OK, just hide the selector
-        console.log('No organizations found for user');
         setAvailableBranches([]);
         setContextLoading(false);
         setIsLoading(false);
@@ -64,7 +63,6 @@ export default function BranchSelector() {
       
       // Validate organization has an ID
       if (!org || !org.id) {
-        console.error('Organization missing ID:', org);
         setAvailableBranches([]);
         setContextLoading(false);
         setIsLoading(false);

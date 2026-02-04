@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type CustomerStatus = 'active' | 'overdue' | 'new' | 'inactive';
@@ -74,6 +75,7 @@ export default function CustomersPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 200); // Debounce search for performance
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
   const [statusFilter, setStatusFilter] = useState<CustomerStatus | 'all'>('all');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -91,16 +93,19 @@ export default function CustomersPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Memoize customer calculations separately for better performance
   const customersWithDetails = useMemo(() => {
-    if (!mounted) return [];
+    if (!mounted || customers.length === 0) return [];
     return customers.map(customer => {
       const customerExpenses = expenses.filter(e => e.customerId === customer.id);
       const totalBilled = customerExpenses.reduce((sum, e) => sum + e.amount, 0);
       const totalPaid = customerExpenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
       const outstanding = totalBilled - totalPaid;
-      const lastExpense = customerExpenses.sort((a, b) => 
-        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-      )[0];
+      const lastExpense = customerExpenses.length > 0 
+        ? customerExpenses.reduce((latest, e) => 
+            new Date(e.lastUpdated).getTime() > new Date(latest.lastUpdated).getTime() ? e : latest
+          )
+        : null;
       const lastActivity = lastExpense?.lastUpdated || customer.createdAt;
       const daysSinceActivity = differenceInDays(new Date(), parseISO(lastActivity));
       const createdDaysAgo = differenceInDays(new Date(), parseISO(customer.createdAt));
@@ -116,10 +121,12 @@ export default function CustomersPage() {
     });
   }, [customers, expenses, mounted]);
 
+  // Use debounced search for filtering
   const filteredCustomers = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
     let result = customersWithDetails.filter(customer =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (customer.phone && customer.phone.includes(searchTerm))
+      customer.name.toLowerCase().includes(searchLower) ||
+      (customer.phone && customer.phone.includes(debouncedSearch))
     );
     if (statusFilter !== 'all') result = result.filter(c => c.status === statusFilter);
     switch (sortBy) {
@@ -221,7 +228,7 @@ export default function CustomersPage() {
     try {
       setDeleting(true);
       const result = await customerService.bulkDeleteCustomers(Array.from(selectedCustomers));
-      toast({ title: "Deleted", description: `Deleted ${result.deletedCount} customer(s)` });
+      toast({ title: "Deleted", description: `Deleted ${result.data?.deletedCount || selectedCustomers.size} customer(s)` });
       await refreshData(); setSelectedCustomers(new Set()); setDeleteMode(false); setShowDeleteDialog(false);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

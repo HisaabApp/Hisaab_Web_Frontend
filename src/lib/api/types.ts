@@ -3,7 +3,10 @@
  * Type definitions for all API responses matching backend structure
  */
 
-import { Customer, ExpenseRecord } from '../types';
+// Re-export from lib/types for convenience
+export type { Customer, ExpenseRecord } from '../types';
+
+import type { Customer, ExpenseRecord } from '../types';
 
 // Base API Response
 export interface ApiResponse<T = any> {
@@ -113,6 +116,9 @@ export interface ExpenseWithCustomer extends ExpenseRecord {
     name: string;
     phone?: string;
   };
+  // API returns these fields
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateExpenseData {

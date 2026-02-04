@@ -101,14 +101,14 @@ apiClient.interceptors.response.use(
 
     // Log error in debug mode with full details
     if (config.api.debug) {
-      console.error('❌ API Error:', {
+      console.error('❌ API Error:', JSON.stringify({
         status: error.response?.status,
         statusText: error.response?.statusText,
         url: error.config?.url,
         method: error.config?.method,
         message: error.message,
         responseData: error.response?.data,
-      });
+      }, null, 2));
     }
 
     // Handle 401 Unauthorized - Token expired or invalid

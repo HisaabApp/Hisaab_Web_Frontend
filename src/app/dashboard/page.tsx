@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
@@ -93,20 +93,20 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  // Calculate time-based greeting
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+  // Memoize date calculations to avoid recreating Date objects
+  const { currentMonth, currentYear, lastMonth, lastMonthYear, lastMonthDate, greeting } = useMemo(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    const lastMonthDate = subMonths(now, 1);
+    return {
+      currentMonth: getMonth(now) + 1,
+      currentYear: getYear(now),
+      lastMonth: getMonth(lastMonthDate) + 1,
+      lastMonthYear: getYear(lastMonthDate),
+      lastMonthDate,
+      greeting: hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+    };
   }, []);
-
-  // Current and last month calculations
-  const currentMonth = getMonth(new Date()) + 1;
-  const currentYear = getYear(new Date());
-  const lastMonthDate = subMonths(new Date(), 1);
-  const lastMonth = getMonth(lastMonthDate) + 1;
-  const lastMonthYear = getYear(lastMonthDate);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -234,21 +234,43 @@ export default function DashboardPage() {
       .map(c => ({
         ...c,
         outstanding: customerOutstanding.get(c.id) || 0,
-        daysSinceCreated: differenceInDays(new Date(), parseISO(c.createdAt)),
       }))
       .sort((a, b) => b.outstanding - a.outstanding)
       .slice(0, 5);
   }, [customers, expenses]);
 
-  // Format relative time
-  const formatRelativeTime = (dateString: string) => {
+  // Top customers with outstanding - use memoized now date
+  const topCustomers = useMemo(() => {
+    const now = new Date();
+    const customerOutstanding = new Map<string, number>();
+    expenses
+      .filter(e => !e.paid)
+      .forEach(e => {
+        const current = customerOutstanding.get(e.customerId) || 0;
+        customerOutstanding.set(e.customerId, current + e.amount);
+      });
+
+    return customers
+      .filter(c => customerOutstanding.has(c.id))
+      .map(c => ({
+        ...c,
+        outstanding: customerOutstanding.get(c.id) || 0,
+        daysSinceCreated: differenceInDays(now, parseISO(c.createdAt)),
+      }))
+      .sort((a, b) => b.outstanding - a.outstanding)
+      .slice(0, 5);
+  }, [customers, expenses]);
+
+  // Format relative time - memoize formatter
+  const formatRelativeTime = useCallback((dateString: string) => {
     const date = parseISO(dateString);
+    const now = new Date();
     if (isToday(date)) return 'Today';
     if (isYesterday(date)) return 'Yesterday';
-    const days = differenceInDays(new Date(), date);
+    const days = differenceInDays(now, date);
     if (days < 7) return `${days} days ago`;
     return format(date, 'MMM d');
-  };
+  }, []);
 
   if (!mounted || isLoadingCustomers || isLoadingExpenses) {
     return <DashboardSkeleton />;

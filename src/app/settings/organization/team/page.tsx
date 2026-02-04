@@ -248,7 +248,7 @@ export default function TeamManagementPage() {
     setInviteRole('STAFF');
     setInviteBranchId('all');
     setInviteMessage('');
-    setInviteLink(null);
+    // Note: Don't reset inviteLink here as it's used by the invite link dialog
   };
 
   const copyInviteLink = async () => {
@@ -861,7 +861,13 @@ export default function TeamManagementPage() {
       </AlertDialog>
 
       {/* Invite Link Dialog */}
-      <Dialog open={showInviteLinkDialog} onOpenChange={setShowInviteLinkDialog}>
+      <Dialog 
+        open={showInviteLinkDialog} 
+        onOpenChange={(open) => {
+          setShowInviteLinkDialog(open);
+          if (!open) setInviteLink(null); // Clean up when dialog closes
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

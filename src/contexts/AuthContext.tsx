@@ -275,12 +275,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const response = await profileService.updateProfile(data);
       
-      if (response.success && response.user) {
-        setUser(response.user);
+      if (response.success && response.data) {
+        setUser(response.data);
         
         // Update user in localStorage
         if (typeof window !== 'undefined') {
-          localStorage.setItem(config.auth.userKey, JSON.stringify(response.user));
+          localStorage.setItem(config.auth.userKey, JSON.stringify(response.data));
         }
       }
     } catch (err) {
