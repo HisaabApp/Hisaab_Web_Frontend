@@ -170,7 +170,7 @@ export default function CustomerDetailPage() {
           description: `Payment notification sent to ${customer.name}` 
         });
       } else {
-        // Just show the links
+        // Just show the links - Razorpay first (UPI only), then direct UPI as fallback
         const linkText = links.razorpayLink || links.upiLinks?.generic || 'No link available';
         toast({ 
           title: "Payment Link Generated", 

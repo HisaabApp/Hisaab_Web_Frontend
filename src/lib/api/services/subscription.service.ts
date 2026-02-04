@@ -16,6 +16,26 @@ export interface SubscriptionInfo {
   resetDate: string;
 }
 
+export interface CreateOrderResponse {
+  success: boolean;
+  data: {
+    orderId: string;
+    amount: number;
+    currency: string;
+    keyId: string;
+    plan: string;
+    isTestMode: boolean;
+  };
+}
+
+export interface UpgradeResponse {
+  success: boolean;
+  message: string;
+  demoMode?: boolean;
+  requiresPayment?: boolean;
+  razorpayConfigured?: boolean;
+}
+
 export const subscriptionService = {
   /**
    * Get current user's subscription info
@@ -34,10 +54,24 @@ export const subscriptionService = {
   },
 
   /**
-   * Upgrade to a new plan
+   * Create Razorpay order for subscription upgrade
    */
-  async upgradePlan(plan: 'BASIC' | 'PREMIUM'): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post('/subscription/upgrade', { plan });
+  async createOrder(plan: 'BASIC' | 'PREMIUM'): Promise<CreateOrderResponse> {
+    const response = await apiClient.post('/subscription/create-order', { plan });
+    return response.data;
+  },
+
+  /**
+   * Upgrade to a new plan (with payment verification)
+   */
+  async upgradePlan(
+    plan: 'BASIC' | 'PREMIUM',
+    paymentDetails?: { paymentId: string; orderId: string; signature: string }
+  ): Promise<UpgradeResponse> {
+    const response = await apiClient.post('/subscription/upgrade', { 
+      plan,
+      ...paymentDetails 
+    });
     return response.data;
   }
 };

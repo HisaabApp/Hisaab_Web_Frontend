@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, MessageSquare, CheckCircle2, XCircle, TrendingUp, Users, PieChart } from 'lucide-react';
 import { format } from 'date-fns';
+import { Rupee } from '@/lib/currency';
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -109,7 +110,7 @@ export default function AnalyticsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground hidden sm:block" />
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-xl md:text-2xl font-bold">₹{stats?.totalCost.toFixed(2) || '0.00'}</div>
+            <div className="text-xl md:text-2xl font-bold"><Rupee amount={stats?.totalCost || 0} decimals={2} /></div>
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -222,7 +223,7 @@ export default function AnalyticsPage() {
                           {format(new Date(message.createdAt), 'MMM dd, HH:mm')}
                         </p>
                         {message.amount && (
-                          <p className="text-xs md:text-sm font-medium">₹{message.amount.toFixed(0)}</p>
+                          <p className="text-xs md:text-sm font-medium"><Rupee amount={message.amount} /></p>
                         )}
                       </div>
                     </div>

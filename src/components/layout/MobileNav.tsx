@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, FileText, Settings, Plus } from 'lucide-react';
+import { Home, Users, FileText, Settings, Plus, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -15,7 +15,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/reports', label: 'Reports', icon: FileText },
+  { href: '/payments', label: 'Payments', icon: Wallet },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

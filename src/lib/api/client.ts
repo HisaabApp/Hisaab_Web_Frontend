@@ -127,22 +127,22 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error('Access forbidden');
+      // Access forbidden - handled silently
     }
 
     // Handle 404 Not Found
     if (error.response?.status === 404) {
-      console.error('Resource not found');
+      // Resource not found - handled silently
     }
 
     // Handle 500 Internal Server Error
     if (error.response?.status === 500) {
-      console.error('Server error occurred');
+      // Server error - handled silently
     }
 
     // Handle Network Error
     if (!error.response) {
-      console.error('Network error - API server may be down');
+      // Network error - handled silently
     }
 
     return Promise.reject(error);

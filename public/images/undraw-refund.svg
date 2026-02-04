@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <style>.r1{fill:#f59e0b;}.r2{fill:#3f3d56;}.r3{fill:#e6e6e6;}.r4{fill:#f2f2f2;}.r5{fill:#ffb8b8;}.r6{fill:#2f2e41;}</style>
+  </defs>
+  <!-- Background circle -->
+  <circle class="r4" cx="400" cy="300" r="200"/>
+  <!-- Wallet -->
+  <rect class="r2" x="280" y="220" width="240" height="160" rx="20"/>
+  <rect class="r1" x="290" y="230" width="220" height="50" rx="10"/>
+  <rect class="r3" x="310" y="300" width="80" height="15" rx="5"/>
+  <rect class="r3" x="310" y="325" width="120" height="10" rx="5"/>
+  <rect class="r3" x="310" y="345" width="60" height="10" rx="5"/>
+  <!-- Money/Coins flying out -->
+  <circle class="r1" cx="550" cy="200" r="35"/>
+  <text x="535" y="210" fill="white" font-size="22" font-weight="bold" font-family="Arial, sans-serif">Rs</text>
+  <circle class="r1" cx="600" cy="280" r="30"/>
+  <text x="586" y="288" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif">Rs</text>
+  <circle class="r1" cx="580" cy="360" r="25"/>
+  <text x="568" y="368" fill="white" font-size="14" font-weight="bold" font-family="Arial, sans-serif">Rs</text>
+  <!-- Arrow indicating return -->
+  <path d="M520,300 Q580,250 560,180" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="555,190 565,175 575,195" fill="#10b981"/>
+  <!-- Person happy -->
+  <ellipse class="r3" cx="180" cy="550" rx="100" ry="25"/>
+  <circle class="r5" cx="180" cy="350" r="45"/>
+  <path class="r6" d="M135,350 Q180,300 225,350"/>
+  <path class="r2" d="M140,420 L220,420 L230,530 L130,530 Z"/>
+  <path class="r5" d="M140,440 L100,380"/>
+  <path class="r5" d="M220,440 L260,380"/>
+  <!-- Celebration elements -->
+  <circle class="r1" cx="120" cy="280" r="8"/>
+  <circle class="r1" cx="250" cy="250" r="6"/>
+  <circle class="r1" cx="100" cy="350" r="5"/>
+  <!-- Check mark -->
+  <circle class="r1" cx="400" cy="480" r="40" opacity="0.9"/>
+  <polyline points="380,480 395,500 425,460" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

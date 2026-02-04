@@ -69,6 +69,13 @@ export const sendPaymentNotification = async (data: PaymentNotificationData): Pr
       const quotaData = error.response.data;
       throw new Error(`Message limit reached! You've used all ${quotaData.limit} messages on your ${quotaData.plan} plan. Upgrade to send more.`);
     }
+    // Check for payment disabled error
+    if (axios.isAxiosError(error) && error.response?.status === 400) {
+      const action = error.response.data?.action;
+      if (action) {
+        throw new Error(`${error.response.data.error} ${action}`);
+      }
+    }
     throw new Error(handleApiError(error));
   }
 };

@@ -35,7 +35,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/offline'];
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/offline', '/terms', '/privacy', '/refund', '/about'];
 
 // Route prefixes that are public (for dynamic routes)
 const PUBLIC_ROUTE_PREFIXES = ['/invite/'];
@@ -56,7 +56,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Initialize auth state on mount
   useEffect(() => {
     initializeAuth();
-  }, []);
+
+    // Listen for storage changes (logout in other tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === config.auth.tokenKey && !e.newValue) {
+        // Token was removed in another tab - logout this tab too
+        setUser(null);
+        setAuthToken(null);
+        if (!isPublicRoute(pathname)) {
+          router.push('/login');
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [pathname]);
 
   // Redirect logic based on auth state
   useEffect(() => {

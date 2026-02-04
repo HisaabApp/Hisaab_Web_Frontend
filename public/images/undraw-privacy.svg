@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <style>.p1{fill:#3b82f6;}.p2{fill:#3f3d56;}.p3{fill:#e6e6e6;}.p4{fill:#f2f2f2;}.p5{fill:#ffb8b8;}.p6{fill:#2f2e41;}</style>
+  </defs>
+  <!-- Shield -->
+  <path class="p1" d="M400,50 L500,100 L500,250 C500,350 400,450 400,450 C400,450 300,350 300,250 L300,100 Z" opacity="0.9"/>
+  <path class="p4" d="M400,80 L470,120 L470,240 C470,320 400,400 400,400 C400,400 330,320 330,240 L330,120 Z"/>
+  <!-- Lock -->
+  <rect class="p2" x="365" y="200" width="70" height="60" rx="10"/>
+  <circle class="p2" cx="400" cy="180" r="30" fill="none" stroke="#3f3d56" stroke-width="8"/>
+  <circle class="p4" cx="400" cy="225" r="8"/>
+  <rect class="p4" x="396" y="225" width="8" height="20"/>
+  <!-- Person with laptop -->
+  <ellipse class="p3" cx="600" cy="550" rx="150" ry="30"/>
+  <rect class="p2" x="520" y="400" width="160" height="100" rx="10"/>
+  <rect class="p1" x="530" y="410" width="140" height="80" rx="5"/>
+  <rect class="p3" x="560" y="500" width="80" height="10"/>
+  <circle class="p5" cx="600" cy="320" r="40"/>
+  <path class="p6" d="M560,320 Q600,280 640,320"/>
+  <path class="p2" d="M550,380 L650,380 L660,480 L540,480 Z"/>
+  <!-- Data blocks -->
+  <rect class="p3" x="100" y="150" width="120" height="80" rx="10"/>
+  <rect class="p1" x="115" y="170" width="90" height="10" rx="5"/>
+  <rect class="p3" x="115" y="190" width="70" height="8" rx="4"/>
+  <rect class="p3" x="115" y="205" width="80" height="8" rx="4"/>
+  <rect class="p3" x="100" y="260" width="120" height="80" rx="10"/>
+  <rect class="p1" x="115" y="280" width="90" height="10" rx="5"/>
+  <rect class="p3" x="115" y="300" width="60" height="8" rx="4"/>
+  <rect class="p3" x="115" y="315" width="75" height="8" rx="4"/>
+  <!-- Connection lines -->
+  <line x1="220" y1="190" x2="300" y2="200" stroke="#e6e6e6" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="220" y1="300" x2="300" y2="250" stroke="#e6e6e6" stroke-width="2" stroke-dasharray="5,5"/>
+  <!-- Check marks -->
+  <circle class="p1" cx="180" cy="380" r="25"/>
+  <polyline points="168,380 175,390 195,370" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

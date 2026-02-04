@@ -1,13 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { subscriptionService, type SubscriptionInfo, type Plan } from '@/lib/api/services/subscription.service';
-import { CheckCircle2, XCircle, Crown, Zap, TrendingUp, Calendar, MessageSquare, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, XCircle, Crown, Zap, TrendingUp, Calendar, MessageSquare, AlertTriangle, CreditCard, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+
+// Declare Razorpay type
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
@@ -15,6 +24,24 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    script.onerror = () => console.error('Failed to load Razorpay script');
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -37,42 +64,105 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handleUpgrade = async (planName: 'BASIC' | 'PREMIUM') => {
-    // Show confirmation dialog
+  const handleUpgrade = useCallback(async (planName: 'BASIC' | 'PREMIUM') => {
     const planDetails = plans.find(p => p.name === planName);
     if (!planDetails) return;
-
-    const confirmed = confirm(
-      `⚠️ DEMO MODE - Payment Gateway Not Integrated\n\n` +
-      `You are about to upgrade to ${planName} plan (Rs.${planDetails.price}/month).\n\n` +
-      `NOTE: This is currently in DEMO MODE. In production, you would be redirected to ` +
-      `a payment gateway (Razorpay) to complete the payment.\n\n` +
-      `For now, the upgrade will happen immediately without payment.\n\n` +
-      `Do you want to continue?`
-    );
-
-    if (!confirmed) return;
 
     try {
       setUpgrading(true);
       setError(null);
-      const result = await subscriptionService.upgradePlan(planName);
-      if (result.success) {
-        await loadData(); // Reload data
-        alert(result.message || `Successfully upgraded to ${planName} plan`);
+
+      // Step 1: Create Razorpay order
+      const orderResponse = await subscriptionService.createOrder(planName);
+      
+      if (!orderResponse.success || !orderResponse.data) {
+        // If Razorpay not configured, try demo mode upgrade
+        const result = await subscriptionService.upgradePlan(planName);
+        if (result.success) {
+          await loadData();
+          toast({
+            title: 'Plan Upgraded!',
+            description: result.message,
+          });
+        } else if (result.requiresPayment) {
+          setError('Payment gateway not configured. Please contact support.');
+        }
+        setUpgrading(false);
+        return;
       }
+
+      const { orderId, amount, keyId, isTestMode } = orderResponse.data;
+
+      // Step 2: Open Razorpay checkout
+      if (!razorpayLoaded || !window.Razorpay) {
+        setError('Payment gateway is loading. Please try again.');
+        setUpgrading(false);
+        return;
+      }
+
+      const options = {
+        key: keyId,
+        amount: amount * 100, // Amount in paise
+        currency: 'INR',
+        name: 'HisaabApp',
+        description: `${planName} Plan Subscription`,
+        order_id: orderId,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || '',
+        },
+        theme: {
+          color: '#10b981', // Emerald color
+        },
+        handler: async (response: any) => {
+          // Step 3: Verify payment and upgrade
+          try {
+            const upgradeResult = await subscriptionService.upgradePlan(planName, {
+              paymentId: response.razorpay_payment_id,
+              orderId: response.razorpay_order_id,
+              signature: response.razorpay_signature,
+            });
+
+            if (upgradeResult.success) {
+              await loadData();
+              toast({
+                title: 'Payment Successful!',
+                description: `You are now on the ${planName} plan.`,
+              });
+            } else {
+              setError(upgradeResult.message || 'Failed to verify payment');
+            }
+          } catch (err: any) {
+            console.error('Payment verification error:', err);
+            setError('Payment verification failed. Please contact support.');
+          }
+          setUpgrading(false);
+        },
+        modal: {
+          ondismiss: () => {
+            setUpgrading(false);
+            toast({
+              title: 'Payment Cancelled',
+              description: 'You can upgrade anytime.',
+              variant: 'destructive',
+            });
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (err: any) {
       console.error('Upgrade Error:', err);
       const errorMessage = 
         err.response?.data?.message || 
-        err.response?.data?.error || 
         err.message || 
-        'Failed to upgrade plan. Please try again.';
+        'Failed to initiate payment. Please try again.';
       setError(errorMessage);
-    } finally {
       setUpgrading(false);
     }
-  };
+  }, [plans, razorpayLoaded, user, toast]);
 
   if (loading) {
     return (
@@ -114,13 +204,12 @@ export default function SubscriptionPage() {
         </p>
       </div>
 
-      {/* Demo Mode Warning */}
-      <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-        <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-        <AlertDescription className="text-xs sm:text-sm text-amber-900 dark:text-amber-100">
-          <strong>DEMO MODE:</strong> Payment gateway is not yet integrated. 
-          Plan upgrades will work immediately without payment. 
-          In production, Razorpay payment gateway will be required for paid plans.
+      {/* Payment Info */}
+      <Alert className="bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800">
+        <Shield className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+        <AlertDescription className="text-xs sm:text-sm text-emerald-900 dark:text-emerald-100">
+          <strong>Secure Payments:</strong> All payments are processed securely via Razorpay (UPI only).
+          Your payment information is never stored on our servers.
         </AlertDescription>
       </Alert>
 
@@ -226,9 +315,10 @@ export default function SubscriptionPage() {
                   <Button
                     onClick={() => handleUpgrade(plan.name as 'BASIC' | 'PREMIUM')}
                     disabled={upgrading}
-                    className="w-full"
+                    className="w-full gap-2"
                   >
-                    {upgrading ? 'Processing...' : `Upgrade to ${plan.name}`}
+                    <CreditCard className="h-4 w-4" />
+                    {upgrading ? 'Processing...' : `Pay Rs.${plan.price} & Upgrade`}
                   </Button>
                 )}
               </CardContent>

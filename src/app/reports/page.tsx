@@ -23,6 +23,7 @@ import type { Customer } from '@/lib/types';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 import { downloadExcelReport } from '@/lib/api/services/report.service';
+import { Rupee } from '@/lib/currency';
 
 const COLORS = ['#10b981', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -421,7 +422,7 @@ export default function ReportsPage() {
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs md:text-sm text-muted-foreground mb-1">Total Billed</p>
-              <p className="text-lg md:text-2xl font-bold truncate">₹{overallStats.totalBilled.toFixed(0)}</p>
+              <p className="text-lg md:text-2xl font-bold truncate"><Rupee amount={overallStats.totalBilled} /></p>
               {trendData.billedTrend !== 0 && (
                 <div className={`flex items-center text-xs mt-1 ${trendData.billedTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {trendData.billedTrend > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -439,7 +440,7 @@ export default function ReportsPage() {
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs md:text-sm text-muted-foreground mb-1">Collected</p>
-              <p className="text-lg md:text-2xl font-bold text-green-600 truncate">₹{overallStats.totalPaid.toFixed(0)}</p>
+              <p className="text-lg md:text-2xl font-bold text-green-600 truncate"><Rupee amount={overallStats.totalPaid} /></p>
               {trendData.paidTrend !== 0 && (
                 <div className={`flex items-center text-xs mt-1 ${trendData.paidTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {trendData.paidTrend > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -457,7 +458,7 @@ export default function ReportsPage() {
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs md:text-sm text-muted-foreground mb-1">Outstanding</p>
-              <p className="text-lg md:text-2xl font-bold text-orange-600 truncate">₹{overallStats.totalOutstanding.toFixed(0)}</p>
+              <p className="text-lg md:text-2xl font-bold text-orange-600 truncate"><Rupee amount={overallStats.totalOutstanding} /></p>
               <p className="text-xs text-muted-foreground mt-1">{customerBalances.length} customers</p>
             </div>
             <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center flex-shrink-0">
@@ -581,7 +582,7 @@ export default function ReportsPage() {
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value: number) => `₹${value.toFixed(0)}`}
+                        formatter={(value: number) => [`Rs. ${value.toFixed(0)}`, '']}
                         contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                       />
                       <Legend 
@@ -599,14 +600,14 @@ export default function ReportsPage() {
                       <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
                       <span className="text-xs sm:text-sm text-muted-foreground">Paid</span>
                     </div>
-                    <p className="font-bold text-sm md:text-lg">₹{overallStats.totalPaid.toFixed(0)}</p>
+                    <p className="font-bold text-sm md:text-lg"><Rupee amount={overallStats.totalPaid} /></p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center gap-1.5 sm:gap-2 justify-center">
                       <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-500" />
                       <span className="text-xs sm:text-sm text-muted-foreground">Outstanding</span>
                     </div>
-                    <p className="font-bold text-sm md:text-lg">₹{overallStats.totalOutstanding.toFixed(0)}</p>
+                    <p className="font-bold text-sm md:text-lg"><Rupee amount={overallStats.totalOutstanding} /></p>
                   </div>
                 </div>
               </>
@@ -645,7 +646,7 @@ export default function ReportsPage() {
                 {customerBalances.map(cb => (
                   <TableRow key={cb.id}>
                     <TableCell className="text-xs md:text-sm py-2 md:py-3">{cb.name}</TableCell>
-                    <TableCell className="text-right font-medium text-xs md:text-sm py-2 md:py-3">₹{cb.outstanding.toFixed(0)}</TableCell>
+                    <TableCell className="text-right font-medium text-xs md:text-sm py-2 md:py-3"><Rupee amount={cb.outstanding} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

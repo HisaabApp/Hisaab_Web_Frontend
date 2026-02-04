@@ -15,7 +15,6 @@ import {
   Receipt,
   Shield,
   Check,
-  Play,
   Milk,
   GraduationCap,
   RefreshCw,
@@ -39,7 +38,7 @@ export default function LandingPage() {
       icon: FileText,
       title: "Smart Invoicing",
       description: "Generate professional PDF invoices with your business logo and share instantly via WhatsApp or email.",
-      color: "bg-blue-100 text-blue-600",
+      color: "bg-emerald-100 text-emerald-600",
       items: ["Professional PDF invoices", "Custom business logo", "One-click sharing"]
     },
     {
@@ -60,7 +59,7 @@ export default function LandingPage() {
       icon: Receipt,
       title: "Expense Tracking",
       description: "Record daily and monthly expenses with quantity and rate tracking for complete financial oversight.",
-      color: "bg-blue-100 text-blue-600",
+      color: "bg-teal-100 text-teal-600",
       items: ["Daily/monthly tracking", "Quantity & rate details", "Category-wise organization"]
     },
     {
@@ -168,7 +167,7 @@ export default function LandingPage() {
                 <Button variant="ghost" className="text-gray-600">Login</Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full px-6">
                   Start Free Trial
                 </Button>
               </Link>
@@ -178,14 +177,14 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-50 via-blue-50/30 to-white py-16 lg:py-24">
+      <section className="bg-gradient-to-br from-slate-50 via-emerald-50/30 to-white py-16 lg:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6">
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Complete Business{" "}
-                <span className="text-blue-600">Billing</span>
+                <span className="text-emerald-600">Billing</span>
                 <br />
                 & Customer Management
               </h1>
@@ -196,16 +195,10 @@ export default function LandingPage() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/register">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 rounded-full px-8 h-12">
+                  <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 rounded-full px-8 h-12">
                     Start Free Trial
                   </Button>
                 </Link>
-                <a href="#demo-video">
-                  <Button size="lg" variant="outline" className="rounded-full px-8 h-12 gap-2">
-                    <Play className="h-4 w-4" />
-                    Watch Demo
-                  </Button>
-                </a>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 pt-4 text-sm text-gray-500">
@@ -242,8 +235,8 @@ export default function LandingPage() {
               {/* Revenue Card Overlay */}
               <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 border">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <IndianRupee className="h-5 w-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <IndianRupee className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Monthly Revenue</p>
@@ -336,22 +329,22 @@ export default function LandingPage() {
             {pricingPlans.map((plan, index) => (
               <Card 
                 key={index} 
-                className={`relative bg-slate-800 border-0 shadow-xl ${plan.popular ? 'ring-2 ring-blue-500' : ''}`}
+                className={`relative bg-slate-800 border-0 shadow-xl ${plan.popular ? 'ring-2 ring-emerald-500' : ''}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-blue-600 text-white text-xs font-medium px-4 py-1.5 rounded-full">
+                    <span className="bg-emerald-600 text-white text-xs font-medium px-4 py-1.5 rounded-full">
                       Most Popular
                     </span>
                   </div>
                 )}
                 <CardContent className="p-8">
                   <div className="text-center mb-6">
-                    <h3 className={`text-xl font-semibold mb-2 ${plan.popular ? 'text-blue-400' : 'text-white'}`}>
+                    <h3 className={`text-xl font-semibold mb-2 ${plan.popular ? 'text-emerald-400' : 'text-white'}`}>
                       {plan.name}
                     </h3>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className={`text-3xl font-bold ${plan.popular ? 'text-blue-400' : 'text-green-400'}`}>Rs. {plan.price}</span>
+                      <span className={`text-3xl font-bold ${plan.popular ? 'text-emerald-400' : 'text-emerald-400'}`}>Rs. {plan.price}</span>
                       <span className="text-gray-400">/month</span>
                     </div>
                     <p className="text-sm text-gray-400 mt-2">{plan.description}</p>
@@ -370,7 +363,7 @@ export default function LandingPage() {
                     <Button 
                       className={`w-full rounded-full ${
                         plan.popular 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
                           : 'bg-white text-slate-800 hover:bg-gray-100'
                       }`}
                     >
@@ -385,17 +378,17 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      <section className="py-20 bg-emerald-600">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Ready to Transform Your Business Billing?
           </h2>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-emerald-100 mb-8 max-w-2xl mx-auto">
             Join thousands of businesses already using HisaabApp to streamline their billing and grow their revenue.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 rounded-full px-8 h-12">
+              <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 rounded-full px-8 h-12">
                 Start Your Free Trial
               </Button>
             </Link>
@@ -405,7 +398,7 @@ export default function LandingPage() {
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-blue-200 mt-6">
+          <p className="text-sm text-emerald-200 mt-6">
             14-day free trial • No credit card required • Cancel anytime
           </p>
         </div>
@@ -446,17 +439,17 @@ export default function LandingPage() {
                 links: [
                   { name: "Help Center", href: "mailto:support@hisaabapp.com" },
                   { name: "Contact Us", href: "mailto:contact@hisaabapp.com" },
-                  { name: "WhatsApp", href: "https://wa.me/919876543210" },
-                  { name: "Call Us", href: "tel:+919876543210" }
+                  { name: "WhatsApp", href: "https://wa.me/918460988661" },
+                  { name: "Call Us", href: "tel:+918460988661" }
                 ]
               },
               { 
                 title: "Company", 
                 links: [
-                  { name: "About", href: "#footer" },
-                  { name: "Terms of Service", href: "#footer" },
-                  { name: "Privacy Policy", href: "#footer" },
-                  { name: "Refund Policy", href: "#footer" }
+                  { name: "About", href: "/about" },
+                  { name: "Terms of Service", href: "/terms" },
+                  { name: "Privacy Policy", href: "/privacy" },
+                  { name: "Refund Policy", href: "/refund" }
                 ]
               }
             ].map((section) => (

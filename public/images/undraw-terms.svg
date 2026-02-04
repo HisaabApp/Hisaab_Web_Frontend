@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 888.24 710.7">
+  <defs>
+    <style>.cls-1{fill:#10b981;}.cls-2{fill:#3f3d56;}.cls-3{fill:#f2f2f2;}.cls-4{fill:#e6e6e6;}.cls-5{fill:#ffb8b8;}.cls-6{fill:#2f2e41;}</style>
+  </defs>
+  <path class="cls-3" d="M438.24,710.7H0V0H438.24Z"/>
+  <rect class="cls-4" x="52.24" y="52" width="334" height="20" rx="10"/>
+  <rect class="cls-4" x="52.24" y="92" width="280" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="124" width="320" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="156" width="260" height="12" rx="6"/>
+  <rect class="cls-1" x="52.24" y="200" width="100" height="4"/>
+  <rect class="cls-4" x="52.24" y="240" width="334" height="20" rx="10"/>
+  <rect class="cls-4" x="52.24" y="280" width="300" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="312" width="290" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="344" width="310" height="12" rx="6"/>
+  <rect class="cls-1" x="52.24" y="388" width="100" height="4"/>
+  <rect class="cls-4" x="52.24" y="428" width="334" height="20" rx="10"/>
+  <rect class="cls-4" x="52.24" y="468" width="270" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="500" width="320" height="12" rx="6"/>
+  <rect class="cls-4" x="52.24" y="532" width="250" height="12" rx="6"/>
+  <circle class="cls-5" cx="680" cy="180" r="60"/>
+  <path class="cls-6" d="M620,180c0-33.14,26.86-60,60-60s60,26.86,60,60"/>
+  <rect class="cls-2" x="550" y="280" width="280" height="380" rx="20"/>
+  <rect class="cls-1" x="580" y="320" width="220" height="30" rx="10"/>
+  <rect class="cls-4" x="580" y="370" width="180" height="15" rx="7"/>
+  <rect class="cls-4" x="580" y="400" width="200" height="15" rx="7"/>
+  <rect class="cls-4" x="580" y="430" width="160" height="15" rx="7"/>
+  <rect class="cls-1" x="580" y="480" width="100" height="35" rx="10"/>
+  <path class="cls-5" d="M750,550c0,0-20,40-60,40s-40-40-40-40"/>
+  <circle class="cls-1" cx="700" cy="600" r="20"/>
+</svg>

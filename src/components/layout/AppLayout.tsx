@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard, Wallet } from 'lucide-react';
 import MobileNav from './MobileNav';
 import { NotificationBell } from '@/components/NotificationCenter';
 import BranchSelector from '@/components/BranchSelector';
@@ -39,6 +39,7 @@ const navItems = [
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/reports', label: 'Reports', icon: LineChart },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/payments', label: 'Payments', icon: Wallet },
   { href: '/subscription', label: 'Subscription', icon: CreditCard },
 ];
 
@@ -47,10 +48,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useAppContext();
   const { user, logout, isAuthenticated } = useAuth();
 
-  // Don't show sidebar on login/register/landing pages
-  const isAuthPage = pathname === '/' || pathname === '/login' || pathname === '/register';
+  // Don't show sidebar on public pages (login, register, landing, legal pages)
+  const publicPages = ['/', '/login', '/register', '/terms', '/privacy', '/refund'];
+  const isPublicPage = publicPages.includes(pathname);
 
-  if (isAuthPage || !isAuthenticated) {
+  if (isPublicPage || !isAuthenticated) {
     return <>{children}</>;
   }
 

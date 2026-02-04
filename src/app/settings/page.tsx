@@ -535,7 +535,7 @@ export default function SettingsPage() {
                   <div className={`border rounded-lg p-4 ${user?.subscription === 'BASIC' ? 'border-blue-500 bg-blue-50' : ''}`}>
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold">Basic</h4>
-                      <span className="text-lg font-bold">₹299<span className="text-xs font-normal">/mo</span></span>
+                      <span className="text-lg font-bold"><span style={{ fontFamily: 'Arial, sans-serif' }}>₹</span>299<span className="text-xs font-normal">/mo</span></span>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1 mb-4">
                       <li>✓ 100 messages/month</li>
@@ -556,7 +556,7 @@ export default function SettingsPage() {
                   <div className={`border rounded-lg p-4 ${user?.subscription === 'PREMIUM' ? 'border-purple-500 bg-purple-50' : ''}`}>
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold">Premium</h4>
-                      <span className="text-lg font-bold">₹999<span className="text-xs font-normal">/mo</span></span>
+                      <span className="text-lg font-bold"><span style={{ fontFamily: 'Arial, sans-serif' }}>₹</span>999<span className="text-xs font-normal">/mo</span></span>
                     </div>
                     <ul className="text-sm text-muted-foreground space-y-1 mb-4">
                       <li>✓ 500 messages/month</li>

@@ -1,4 +1,5 @@
 import apiClient from '../client';
+import axios from 'axios';
 
 interface BulkNotificationRequest {
   customerIds?: string[];
@@ -22,11 +23,23 @@ export const notificationsService = {
     expenseId: string,
     method: 'sms' | 'whatsapp' = 'sms'
   ): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post('/notifications/payment', {
-      expenseId,
-      method
-    });
-    return response.data;
+    try {
+      const response = await apiClient.post('/notifications/payment', {
+        expenseId,
+        method
+      });
+      return response.data;
+    } catch (error) {
+      // Handle payment disabled error with friendly message
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        const data = error.response.data;
+        if (data?.action) {
+          throw new Error(`${data.error} ${data.action}`);
+        }
+        throw new Error(data?.error || 'Failed to send notification');
+      }
+      throw error;
+    }
   },
 
   /**

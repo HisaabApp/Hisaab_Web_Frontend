@@ -9,7 +9,7 @@ export const config = {
   api: {
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
     timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000'), // 10 seconds (was 30)
-    debug: isDev && process.env.NEXT_PUBLIC_API_DEBUG === 'true', // Only in dev + explicit flag
+    debug: false, // Disabled - set to true only when debugging API issues
   },
   auth: {
     tokenKey: 'hisaabapp_auth_token',
