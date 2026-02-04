@@ -63,7 +63,10 @@ export default function PaymentsPage() {
 
   // Load payment settings
   useEffect(() => {
-    if (!selectedOrganization?.id) return;
+    if (!selectedOrganization?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     const loadSettings = async () => {
       try {
@@ -88,7 +91,6 @@ export default function PaymentsPage() {
           setRazorpayStatus(statusRes.data.razorpay);
         }
       } catch (error) {
-        console.error('Failed to load payment settings:', error);
         toast({
           title: 'Error',
           description: 'Failed to load payment settings',
@@ -192,6 +194,23 @@ export default function PaymentsPage() {
           <Skeleton className="h-48 w-full" />
           <Skeleton className="h-48 w-full" />
         </div>
+      </div>
+    );
+  }
+
+  // Show message if no organization selected
+  if (!selectedOrganization?.id) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Payments" description="Configure payment collection for your business" />
+        <Card>
+          <CardHeader>
+            <CardTitle>No Organization Selected</CardTitle>
+            <CardDescription>
+              Payment settings are managed per organization. Please create or select an organization from Settings → Organizations to configure payment settings.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }

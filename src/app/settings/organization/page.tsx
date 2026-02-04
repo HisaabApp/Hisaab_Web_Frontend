@@ -63,6 +63,10 @@ export default function OrganizationSettingsPage() {
   const [branchAddress, setBranchAddress] = useState('');
   const [branchPhone, setBranchPhone] = useState('');
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  
+  // Organization creation states
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+  const [orgName, setOrgName] = useState('');
 
   useEffect(() => {
     loadOrganizations();
@@ -88,6 +92,41 @@ export default function OrganizationSettingsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateOrganization = async () => {
+    if (!orgName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter an organization name',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      setIsCreatingOrg(true);
+      const response = await organizationApi.organization.createOrganization({
+        name: orgName.trim()
+      });
+
+      if (response.success) {
+        toast({
+          title: 'Organization Created',
+          description: `${orgName} has been created successfully`
+        });
+        setOrgName('');
+        loadOrganizations();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to create organization',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsCreatingOrg(false);
     }
   };
 
@@ -228,6 +267,52 @@ export default function OrganizationSettingsPage() {
         description="Manage your organization, branches, and team members"
       />
 
+      {/* No Organization - Show Creation Form */}
+      {memberships.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Your Organization</CardTitle>
+            <CardDescription>
+              You need to create an organization first to manage branches and team members.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="org-name">Organization Name *</Label>
+                <Input
+                  id="org-name"
+                  placeholder="e.g., Shiv Shambhu Dairy"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && orgName.trim()) {
+                      handleCreateOrganization();
+                    }
+                  }}
+                />
+              </div>
+              <Button 
+                onClick={handleCreateOrganization} 
+                disabled={!orgName.trim() || isCreatingOrg}
+              >
+                {isCreatingOrg ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Organization
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Organization Info */}
       {currentOrg && (
         <Card>
@@ -250,19 +335,20 @@ export default function OrganizationSettingsPage() {
         </Card>
       )}
 
-      {/* Branches Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Branches</CardTitle>
-              <CardDescription>
-                Manage your business locations
-              </CardDescription>
-            </div>
-            
-            {isOwnerOrManager && (
-              <Dialog>
+      {/* Branches Section - Only show if organization exists */}
+      {currentOrg && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Branches</CardTitle>
+                <CardDescription>
+                  Manage your business locations
+                </CardDescription>
+              </div>
+              
+              {isOwnerOrManager && (
+                <Dialog>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
@@ -381,26 +467,29 @@ export default function OrganizationSettingsPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
-      {/* Team Members Link */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Team Members</CardTitle>
-              <CardDescription>
-                Manage who has access to your organization
-              </CardDescription>
+      {/* Team Members Link - Only show if organization exists */}
+      {currentOrg && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Team Members</CardTitle>
+                <CardDescription>
+                  Manage who has access to your organization
+                </CardDescription>
+              </div>
+              <Link href="/settings/organization/team">
+                <Button variant="outline">
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Team
+                </Button>
+              </Link>
             </div>
-            <Link href="/settings/organization/team">
-              <Button variant="outline">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Team
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Edit Branch Dialog */}
       <Dialog open={!!editingBranch} onOpenChange={(open) => !open && setEditingBranch(null)}>
