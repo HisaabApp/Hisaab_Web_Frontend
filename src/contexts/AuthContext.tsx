@@ -73,20 +73,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [pathname]);
 
+  // Track redirect to prevent loops
+  const [hasRedirected, setHasRedirected] = useState(false);
+
   // Redirect logic based on auth state
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !hasRedirected) {
       const isPublic = isPublicRoute(pathname);
       
       if (!user && !isPublic) {
         // Not authenticated and trying to access protected route
+        setHasRedirected(true);
         router.push('/login');
       } else if (user && (pathname === '/login' || pathname === '/register')) {
         // Authenticated but on login/register page
+        setHasRedirected(true);
         router.push('/dashboard');
       }
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, isLoading, pathname, router, hasRedirected]);
+
+  // Reset redirect flag when user or pathname changes
+  useEffect(() => {
+    setHasRedirected(false);
+  }, [user, pathname]);
 
   /**
    * Initialize authentication state from stored token

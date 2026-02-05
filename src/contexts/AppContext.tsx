@@ -111,18 +111,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [theme, mounted]);
 
   // Fetch data on auth
+  const [isFetching, setIsFetching] = useState(false);
+  
   useEffect(() => {
-    if (isAuthenticated && !authLoading && !dataLoaded) {
+    if (isAuthenticated && !authLoading && !dataLoaded && !isFetching) {
       fetchAllData();
     }
-  }, [isAuthenticated, authLoading, dataLoaded]);
+  }, [isAuthenticated, authLoading, dataLoaded, isFetching]);
 
   /**
    * Fetch all data from API
    */
   const fetchAllData = async () => {
-    await Promise.all([fetchCustomers(), fetchExpenses()]);
-    setDataLoaded(true);
+    if (isFetching) return; // Prevent concurrent calls
+    
+    setIsFetching(true);
+    try {
+      await Promise.all([fetchCustomers(), fetchExpenses()]);
+      setDataLoaded(true);
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   /**

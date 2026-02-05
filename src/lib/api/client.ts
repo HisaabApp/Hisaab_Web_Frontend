@@ -62,12 +62,20 @@ apiClient.interceptors.request.use(
       }
     }
 
-    // Log request in debug mode
+    // Log request in debug mode (filter sensitive data)
     if (config.api.debug) {
+      const sanitizedData = requestConfig.data ? { ...requestConfig.data } : {};
+      // Remove sensitive fields from logging
+      if (sanitizedData.password) sanitizedData.password = '***';
+      if (sanitizedData.currentPassword) sanitizedData.currentPassword = '***';
+      if (sanitizedData.newPassword) sanitizedData.newPassword = '***';
+      if (sanitizedData.token) sanitizedData.token = '***';
+      if (sanitizedData.otp) sanitizedData.otp = '***';
+      
       console.log('🚀 API Request:', {
         method: requestConfig.method?.toUpperCase(),
         url: requestConfig.url,
-        data: requestConfig.data,
+        data: sanitizedData,
         branchId: requestConfig.headers?.['x-branch-id']
       });
     }

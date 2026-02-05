@@ -102,6 +102,7 @@ export function BranchProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('selectedBranchId', branch.id);
       localStorage.setItem('selectedBranch', JSON.stringify(branch));
     } else {
+      // User selected "All Branches" - store actual null, not string 'null'
       localStorage.removeItem('selectedBranchId');
       localStorage.removeItem('selectedBranch');
     }
