@@ -14,6 +14,35 @@ export interface SubscriptionInfo {
   messagesUsed: number;
   remaining: number;
   resetDate: string;
+  customerCount?: number;
+  customerLimit?: number;
+}
+
+// Subscription status types
+export type SubscriptionStatusType = 'ACTIVE' | 'GRACE_PERIOD' | 'EXPIRED' | 'SUSPENDED';
+
+export interface SubscriptionStatus {
+  status: SubscriptionStatusType;
+  plan: string;
+  planExpiry: string | null;
+  graceEndDate: string | null;
+  daysUntilExpiry: number | null;
+  daysInGracePeriod: number | null;
+  isLocked: boolean;
+  lockedReason: string | null;
+  canAccessFeatures: boolean;
+  message: string;
+  effectiveLimits: {
+    customers: number;
+    messages: number;
+    branches: number;
+    teamMembers: number;
+  };
+  currentUsage: {
+    customers: number;
+    messages: number;
+  };
+  exceedsFreeLimit: boolean;
 }
 
 export interface CreateOrderResponse {
@@ -36,6 +65,31 @@ export interface UpgradeResponse {
   razorpayConfigured?: boolean;
 }
 
+export interface BillingTransaction {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  currency: string;
+  status: 'completed' | 'pending' | 'failed' | 'refunded';
+  plan: string;
+  invoiceUrl: string | null;
+}
+
+export interface BillingHistory {
+  transactions: BillingTransaction[];
+  nextBillingDate: string | null;
+  currentPlan: string;
+}
+
+export interface CancelResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    effectiveDate: string;
+  };
+}
+
 export const subscriptionService = {
   /**
    * Get current user's subscription info
@@ -46,11 +100,35 @@ export const subscriptionService = {
   },
 
   /**
+   * Get subscription status (grace period, lock state, etc.)
+   */
+  async getSubscriptionStatus(): Promise<SubscriptionStatus> {
+    const response = await apiClient.get('/subscription/status');
+    return response.data.data || response.data;
+  },
+
+  /**
    * Get available subscription plans
    */
   async getPlans(): Promise<Plan[]> {
     const response = await apiClient.get('/subscription/plans');
     return response.data.data || response.data;
+  },
+
+  /**
+   * Get billing history
+   */
+  async getBillingHistory(): Promise<BillingHistory> {
+    const response = await apiClient.get('/subscription/billing');
+    return response.data.data || response.data;
+  },
+
+  /**
+   * Cancel subscription
+   */
+  async cancelSubscription(immediate: boolean = false): Promise<CancelResponse> {
+    const response = await apiClient.post('/subscription/cancel', { immediate });
+    return response.data;
   },
 
   /**

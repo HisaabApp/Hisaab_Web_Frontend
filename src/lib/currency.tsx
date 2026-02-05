@@ -1,6 +1,6 @@
 /**
- * Utility to format currency with proper Rupee symbol
- * Uses a font stack that reliably renders the ₹ symbol
+ * Utility to format currency with Rupee
+ * Uses "Rs." for reliable display across all systems
  */
 
 import React from 'react';
@@ -12,8 +12,8 @@ interface RupeeProps {
 }
 
 /**
- * Rupee component that properly renders the ₹ symbol
- * Uses Arial font which has reliable rupee glyph support
+ * Rupee component that renders currency
+ * Uses "Rs." for consistent display
  */
 export function Rupee({ amount, className = '', decimals = 0 }: RupeeProps) {
   const formattedAmount = typeof amount === 'number' 
@@ -22,18 +22,17 @@ export function Rupee({ amount, className = '', decimals = 0 }: RupeeProps) {
   
   return (
     <span className={className}>
-      <span style={{ fontFamily: 'Arial, Roboto, sans-serif' }}>₹</span>
-      {formattedAmount}
+      Rs.{formattedAmount}
     </span>
   );
 }
 
 /**
- * Format number with Indian rupee symbol
- * Returns a string with ₹ prefix
+ * Format number with Indian rupee
+ * Returns a string with Rs. prefix
  */
 export function formatRupee(amount: number, decimals: number = 0): string {
-  return `₹${amount.toFixed(decimals)}`;
+  return `Rs.${amount.toFixed(decimals)}`;
 }
 
 /**
@@ -68,8 +67,8 @@ export function formatIndianNumber(num: number): string {
 
 /**
  * Format rupee with Indian number system
- * Example: 1000000 -> "₹10,00,000"
+ * Example: 1000000 -> "Rs.10,00,000"
  */
 export function formatRupeeIndian(amount: number): string {
-  return `₹${formatIndianNumber(amount)}`;
+  return `Rs.${formatIndianNumber(amount)}`;
 }

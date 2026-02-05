@@ -12,8 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Eye, Edit, PlusCircle, Search, Download, Send, Trash2,
   Clock, AlertCircle, Phone, MapPin, Users, IndianRupee,
-  MessageSquare, MoreVertical, TrendingUp
+  MessageSquare, MoreVertical, TrendingUp, Crown, Zap, Star
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { planService, type PlanStatus } from '@/lib/api/services/plan.service';
 import { useRouter } from 'next/navigation';
 import CustomerFormSheet from './CustomerFormSheet';
 import { CustomerImport } from '@/components/CustomerImport';
@@ -34,6 +36,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePlanLimit } from '@/hooks/usePlanLimit';
+import { usePlanLimitModal } from '@/contexts/PlanLimitContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type CustomerStatus = 'active' | 'overdue' | 'new' | 'inactive';
@@ -74,6 +78,8 @@ export default function CustomersPage() {
   const { customers, expenses, refreshData, isLoadingCustomers } = useAppContext();
   const router = useRouter();
   const { toast } = useToast();
+  const { canAddCustomer } = usePlanLimit();
+  const { showUpgradeModal } = usePlanLimitModal();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 200); // Debounce search for performance
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
@@ -90,8 +96,22 @@ export default function CustomersPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Fetch plan status for capacity indicator
+  useEffect(() => {
+    const fetchPlanStatus = async () => {
+      try {
+        const status = await planService.getStatus();
+        setPlanStatus(status);
+      } catch (err) {
+        console.error('Failed to fetch plan status:', err);
+      }
+    };
+    fetchPlanStatus();
+  }, [customers.length]); // Refresh when customers change
 
   // Memoize customer calculations separately for better performance
   const customersWithDetails = useMemo(() => {
@@ -165,7 +185,19 @@ export default function CustomersPage() {
     }
   };
 
-  const handleAddCustomer = () => { setEditingCustomer(null); setIsSheetOpen(true); };
+  const handleAddCustomer = async () => { 
+    // Check plan limits before opening form
+    const limitCheck = await canAddCustomer();
+    if (!limitCheck.allowed) {
+      showUpgradeModal({ 
+        limitType: 'customers',
+        message: limitCheck.message 
+      });
+      return;
+    }
+    setEditingCustomer(null); 
+    setIsSheetOpen(true); 
+  };
   const handleEditCustomer = (customerId: string, e?: React.MouseEvent) => {
     e?.stopPropagation(); setEditingCustomer(customerId); setIsSheetOpen(true);
   };
@@ -301,7 +333,100 @@ export default function CustomersPage() {
           </div>
         </PageHeader>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {/* Plan Capacity Card */}
+          <Card className={`p-4 col-span-2 md:col-span-1 ${
+            planStatus?.usage?.customers?.percentage !== undefined && planStatus.usage.customers.percentage >= 90 
+              ? 'border-red-300 bg-red-50/50 dark:bg-red-950/20' 
+              : planStatus?.usage?.customers?.percentage !== undefined && planStatus.usage.customers.percentage >= 75 
+              ? 'border-yellow-300 bg-yellow-50/50 dark:bg-yellow-950/20' 
+              : ''
+          }`}>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {planStatus?.plan === 'PREMIUM' ? (
+                    <Crown className="h-4 w-4 text-purple-600" />
+                  ) : planStatus?.plan === 'BASIC' ? (
+                    <Zap className="h-4 w-4 text-blue-600" />
+                  ) : (
+                    <Star className="h-4 w-4 text-gray-600" />
+                  )}
+                  <Badge variant={
+                    planStatus?.plan === 'PREMIUM' ? 'default' : 
+                    planStatus?.plan === 'BASIC' ? 'secondary' : 'outline'
+                  } className="text-xs">
+                    {planStatus?.plan || 'FREE'}
+                  </Badge>
+                </div>
+              </div>
+              
+              {planStatus?.usage?.customers ? (
+                <>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Capacity</span>
+                      <span className="font-semibold">
+                        {planStatus.usage.customers.current ?? 0}
+                        <span className="text-muted-foreground font-normal">
+                          /{planStatus.usage.customers.limit === -1 ? '∞' : (planStatus.usage.customers.limit ?? 0)}
+                        </span>
+                      </span>
+                    </div>
+                    {planStatus.usage.customers.limit !== -1 && (
+                      <Progress 
+                        value={Math.min(planStatus.usage.customers.percentage ?? 0, 100)} 
+                        className={`h-2 ${
+                          (planStatus.usage.customers.percentage ?? 0) >= 90 
+                            ? '[&>div]:bg-red-500' 
+                            : (planStatus.usage.customers.percentage ?? 0) >= 75 
+                            ? '[&>div]:bg-yellow-500' 
+                            : '[&>div]:bg-green-500'
+                        }`}
+                      />
+                    )}
+                  </div>
+                  
+                  {planStatus.plan !== 'PREMIUM' && (
+                    <Button 
+                      size="sm" 
+                      variant={(planStatus.usage.customers.percentage ?? 0) >= 75 ? 'default' : 'outline'}
+                      className="w-full text-xs h-7"
+                      onClick={() => router.push('/subscription?tab=plans')}
+                    >
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      {(planStatus.usage.customers.percentage ?? 0) >= 90 
+                        ? 'Upgrade Now' 
+                        : (planStatus.usage.customers.percentage ?? 0) >= 75 
+                        ? 'Upgrade Soon' 
+                        : 'View Plans'}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Capacity</span>
+                    <span className="font-semibold">
+                      {customers.length}
+                      <span className="text-muted-foreground font-normal">/--</span>
+                    </span>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full text-xs h-7"
+                    onClick={() => router.push('/subscription?tab=plans')}
+                  >
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    View Plans
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Existing Stats Cards */}
           <Card className="p-4"><div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center"><Users className="h-5 w-5 text-blue-600" /></div>
             <div><p className="text-2xl font-bold">{customers.length}</p><p className="text-xs text-muted-foreground">Total</p></div>

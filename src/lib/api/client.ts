@@ -120,22 +120,48 @@ apiClient.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized - Token expired or invalid
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip redirect for auth endpoints (login, register, etc.) - let them handle their own errors
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+    
+    // Also skip for subscription/status which may be called before full auth
+    const isStatusCheck = originalRequest.url?.includes('/subscription/status') || 
+                          originalRequest.url?.includes('/plan/status');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint && !isStatusCheck) {
       originalRequest._retry = true;
       
-      // Clear auth and redirect to login
+      // Clear auth token
       setAuthToken(null);
       
+      // Use router-based navigation instead of hard redirect to prevent crashes
+      // The AuthContext will handle the redirect properly
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        // Clear stored user data too
+        localStorage.removeItem('hisaabapp_user');
+        
+        // Only redirect if not already on login page to prevent loops
+        if (!window.location.pathname.includes('/login')) {
+          // Use soft navigation to avoid app crash
+          window.location.replace('/login');
+        }
       }
       
       return Promise.reject(error);
     }
 
-    // Handle 403 Forbidden
+    // Handle 403 Forbidden - Branch access denied
     if (error.response?.status === 403) {
-      // Access forbidden - handled silently
+      const message = error.response?.data?.message || '';
+      // If it's a branch access error, clear the invalid branch from localStorage
+      if (message.includes('branch') || message.includes('Branch')) {
+        if (typeof window !== 'undefined') {
+          console.warn('Branch access denied - clearing stored branch');
+          localStorage.removeItem('selectedBranch');
+          localStorage.removeItem('selectedBranchId');
+          // Reload to reset state
+          window.location.reload();
+        }
+      }
     }
 
     // Handle 404 Not Found
@@ -162,16 +188,24 @@ export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string; error?: string; remaining?: number; limit?: number; plan?: string }>;
     
-    // Server returned error message - use it directly
+    // Special handling for quota exceeded (check first before generic message handling)
+    if (axiosError.response?.data?.error === 'Message quota exceeded') {
+      const limit = axiosError.response.data.limit || 10;
+      const plan = axiosError.response.data.plan || 'FREE';
+      const planName = plan === 'FREE' ? 'Free' : plan === 'PRO' ? 'Pro' : plan === 'BUSINESS' ? 'Business' : plan;
+      
+      return `📱 Message Limit Reached!\n\nYou've used all ${limit} messages included in your ${planName} plan this month.\n\n💡 Upgrade your plan to send more reminders and invoices to your customers.`;
+    }
+    
+    // Server returned error message - but skip the technical "Insufficient quota" message
     if (axiosError.response?.data?.message) {
-      return axiosError.response.data.message;
+      // Skip technical quota messages, we handle them above
+      if (!axiosError.response.data.message.includes('Insufficient quota')) {
+        return axiosError.response.data.message;
+      }
     }
     
     if (axiosError.response?.data?.error) {
-      // Special handling for quota exceeded
-      if (axiosError.response.data.error === 'Message quota exceeded' && axiosError.response.data.limit) {
-        return `Message limit reached! You've used all ${axiosError.response.data.limit} messages on your ${axiosError.response.data.plan || 'current'} plan. Upgrade to send more.`;
-      }
       return axiosError.response.data.error;
     }
 
@@ -187,13 +221,22 @@ export const handleApiError = (error: unknown): string => {
       case 401:
         return 'Authentication failed. Please login again.';
       case 403:
+        // Check for quota exceeded in 403 responses
+        if (axiosError.response?.data?.error?.includes('quota') || 
+            axiosError.response?.data?.message?.includes('quota')) {
+          return '📱 Message limit reached! Please upgrade your plan to send more messages.';
+        }
         return 'You do not have permission to perform this action.';
       case 404:
         return 'Resource not found or access denied.';
+      case 405:
+        return 'This action is not allowed.';
       case 409:
         return 'Conflict. This record may already exist.';
       case 422:
         return 'Validation error. Please check your input.';
+      case 429:
+        return 'Too many requests. Please wait a moment and try again.';
       case 500:
         return 'Server error. Please try again later.';
       case 503:

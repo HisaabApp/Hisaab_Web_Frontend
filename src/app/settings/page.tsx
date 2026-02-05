@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { profileService } from '@/lib/api/services';
+import { subscriptionService, type SubscriptionInfo } from '@/lib/api/services/subscription.service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,11 +17,22 @@ import { Loader2, User, Lock, CheckCircle, AlertCircle, Store, Upload, X, Bell, 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Progress } from '@/components/ui/progress';
 
+// Plan limits configuration
+const PLAN_LIMITS = {
+  FREE: { customers: 200, messages: 10 },
+  BASIC: { customers: 1000, messages: 100 },
+  PREMIUM: { customers: -1, messages: 500 }, // -1 = unlimited
+};
+
 export default function SettingsPage() {
   const { user, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(user?.logo || null);
+  
+  // Subscription state - fetched from API for accurate data
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   
   // Phone linking state
   const [linkPhone, setLinkPhone] = useState('');
@@ -41,6 +53,21 @@ export default function SettingsPage() {
     disablePushNotifications,
     updatePreferences: updateNotificationPrefs,
   } = usePushNotifications();
+
+  // Fetch subscription data on mount
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const sub = await subscriptionService.getSubscription();
+        setSubscription(sub);
+      } catch (err) {
+        console.error('Failed to fetch subscription:', err);
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+    fetchSubscription();
+  }, []);
 
   // Phone linking countdown timer
   useEffect(() => {
@@ -479,101 +506,79 @@ export default function SettingsPage() {
                   Current Plan
                 </CardTitle>
                 <CardDescription>
-                  Your message quota and subscription details
+                  Your subscription details
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Plan</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    user?.subscription === 'PREMIUM' ? 'bg-purple-100 text-purple-800' :
-                    user?.subscription === 'BASIC' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user?.subscription || 'FREE'}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Messages Used</span>
-                    <span className="font-medium">
-                      {user?.messagesUsed || 0} / {user?.messageLimit || 10}
-                    </span>
+                {subscriptionLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
-                  <Progress 
-                    value={((user?.messagesUsed || 0) / (user?.messageLimit || 10)) * 100} 
-                    className="h-2"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {(user?.messageLimit || 10) - (user?.messagesUsed || 0)} messages remaining this month
-                  </p>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Plan</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        subscription?.plan === 'PREMIUM' ? 'bg-purple-100 text-purple-800' :
+                        subscription?.plan === 'BASIC' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {subscription?.plan || 'FREE'}
+                      </span>
+                    </div>
 
-                {user?.subscriptionExpiresAt && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Expires</span>
-                    <span className="font-medium">
-                      {new Date(user.subscriptionExpiresAt).toLocaleDateString('en-IN')}
-                    </span>
-                  </div>
+                    {/* Customer Usage */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Customers</span>
+                        <span className="font-medium">
+                          {subscription?.customerCount || 0} / {subscription?.customerLimit === -1 ? 'Unlimited' : (subscription?.customerLimit || 200)}
+                        </span>
+                      </div>
+                      {subscription?.customerLimit !== -1 && (
+                        <Progress 
+                          value={((subscription?.customerCount || 0) / (subscription?.customerLimit || 200)) * 100} 
+                          className="h-2"
+                        />
+                      )}
+                    </div>
+
+                    {/* Message Usage */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Messages</span>
+                        <span className="font-medium">
+                          {subscription?.messagesUsed || 0} / {subscription?.messageLimit || 10}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={((subscription?.messagesUsed || 0) / (subscription?.messageLimit || 10)) * 100} 
+                        className="h-2"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {subscription?.remaining || 0} messages remaining
+                      </p>
+                    </div>
+
+                    {subscription?.planExpiry && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Expires</span>
+                        <span className="font-medium">
+                          {new Date(subscription.planExpiry).toLocaleDateString('en-IN')}
+                        </span>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    <Button 
+                      className="w-full" 
+                      onClick={() => window.location.href = '/subscription'}
+                    >
+                      {subscription?.plan === 'PREMIUM' ? 'Manage Subscription' : 'View Plans & Upgrade'}
+                    </Button>
+                  </>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Upgrade Plans */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Upgrade Your Plan</CardTitle>
-                <CardDescription>
-                  Get more messages and features
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {/* Basic Plan */}
-                  <div className={`border rounded-lg p-4 ${user?.subscription === 'BASIC' ? 'border-blue-500 bg-blue-50' : ''}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">Basic</h4>
-                      <span className="text-lg font-bold"><span style={{ fontFamily: 'Arial, sans-serif' }}>₹</span>299<span className="text-xs font-normal">/mo</span></span>
-                    </div>
-                    <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-                      <li>✓ 100 messages/month</li>
-                      <li>✓ SMS & WhatsApp</li>
-                      <li>✓ Payment Links</li>
-                    </ul>
-                    {user?.subscription !== 'BASIC' && user?.subscription !== 'PREMIUM' && (
-                      <Button variant="outline" size="sm" className="w-full" disabled>
-                        Coming Soon
-                      </Button>
-                    )}
-                    {user?.subscription === 'BASIC' && (
-                      <span className="text-xs text-blue-600 font-medium">Current Plan</span>
-                    )}
-                  </div>
-
-                  {/* Premium Plan */}
-                  <div className={`border rounded-lg p-4 ${user?.subscription === 'PREMIUM' ? 'border-purple-500 bg-purple-50' : ''}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">Premium</h4>
-                      <span className="text-lg font-bold"><span style={{ fontFamily: 'Arial, sans-serif' }}>₹</span>999<span className="text-xs font-normal">/mo</span></span>
-                    </div>
-                    <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-                      <li>✓ 500 messages/month</li>
-                      <li>✓ SMS & WhatsApp</li>
-                      <li>✓ Payment Links</li>
-                      <li>✓ Priority Support</li>
-                    </ul>
-                    {user?.subscription !== 'PREMIUM' && (
-                      <Button variant="outline" size="sm" className="w-full" disabled>
-                        Coming Soon
-                      </Button>
-                    )}
-                    {user?.subscription === 'PREMIUM' && (
-                      <span className="text-xs text-purple-600 font-medium">Current Plan</span>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>

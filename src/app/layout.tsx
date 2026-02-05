@@ -5,6 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { BranchProvider } from '@/contexts/BranchContext';
+import { PlanLimitProvider } from '@/contexts/PlanLimitContext';
 import { NotificationProvider } from '@/components/NotificationCenter';
 import { OnlineStatusIndicator } from '@/components/SyncStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -65,20 +66,22 @@ export default function RootLayout({
         <ChunkErrorHandler />
         <ErrorBoundary>
           <AuthProvider>
-            <AppProvider>
-              <BranchProvider>
-                <NotificationProvider>
-                  <RouteChangeListener />
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
-                  <OnlineStatusIndicator />
-                  <InstallPrompt />
-                  <IOSInstallInstructions />
-                  <Toaster />
-                </NotificationProvider>
-              </BranchProvider>
-            </AppProvider>
+            <PlanLimitProvider>
+              <AppProvider>
+                <BranchProvider>
+                  <NotificationProvider>
+                    <RouteChangeListener />
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                    <OnlineStatusIndicator />
+                    <InstallPrompt />
+                    <IOSInstallInstructions />
+                    <Toaster />
+                  </NotificationProvider>
+                </BranchProvider>
+              </AppProvider>
+            </PlanLimitProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>

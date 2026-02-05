@@ -107,22 +107,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (token) {
         // Validate token by fetching user profile
-        const response = await authService.getMe();
-        if (response.success && response.data) {
-          setUser(response.data);
-          
-          // Store user in localStorage
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(config.auth.userKey, JSON.stringify(response.data));
+        try {
+          const response = await authService.getMe();
+          if (response.success && response.data) {
+            setUser(response.data);
+            
+            // Store user in localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(config.auth.userKey, JSON.stringify(response.data));
+            }
+          } else {
+            // Invalid token, clear it silently
+            setAuthToken(null);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem(config.auth.userKey);
+            }
           }
-        } else {
-          // Invalid token, clear it
+        } catch (apiError) {
+          // API call failed (401, network error, etc.)
+          // Clear token silently - the redirect logic will handle navigation
+          console.warn('Token validation failed, clearing session');
           setAuthToken(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(config.auth.userKey);
+          }
         }
       }
     } catch (err) {
       console.error('Auth initialization failed:', err);
       setAuthToken(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(config.auth.userKey);
+      }
     } finally {
       setIsLoading(false);
     }

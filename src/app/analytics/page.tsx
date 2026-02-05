@@ -24,21 +24,28 @@ export default function AnalyticsPage() {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      const [statsRes, dailyRes, recentRes, breakdownRes, topRes] = await Promise.all([
-        analyticsService.getMessageStats(),
-        analyticsService.getDailyMessageCount(30),
-        analyticsService.getRecentMessages(20),
-        analyticsService.getMessageBreakdownByPurpose(),
-        analyticsService.getTopCustomers(10),
-      ]);
-
+      
+      // Load data sequentially to avoid rate limiting (429 errors)
+      // Instead of Promise.all which makes all requests at once
+      const statsRes = await analyticsService.getMessageStats();
       if (statsRes.success && statsRes.data) setStats(statsRes.data);
+      
+      const dailyRes = await analyticsService.getDailyMessageCount(30);
       if (dailyRes.success && dailyRes.data) setDailyCount(dailyRes.data);
+      
+      const recentRes = await analyticsService.getRecentMessages(20);
       if (recentRes.success && recentRes.data) setRecentMessages(recentRes.data);
+      
+      const breakdownRes = await analyticsService.getMessageBreakdownByPurpose();
       if (breakdownRes.success && breakdownRes.data) setBreakdown(breakdownRes.data);
+      
+      const topRes = await analyticsService.getTopCustomers(10);
       if (topRes.success && topRes.data) setTopCustomers(topRes.data);
-    } catch (error) {
+      
+    } catch (error: any) {
+      // Handle errors gracefully - show what we have
       console.error('Error loading analytics:', error);
+      // Don't crash the page, just show partial data
     } finally {
       setLoading(false);
     }

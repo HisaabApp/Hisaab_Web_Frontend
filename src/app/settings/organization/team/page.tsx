@@ -18,6 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { usePlanLimit } from '@/hooks/usePlanLimit';
+import { usePlanLimitModal } from '@/contexts/PlanLimitContext';
 import {
   Dialog,
   DialogContent,
@@ -73,6 +75,8 @@ interface MemberWithUser extends OrganizationMember {
 export default function TeamManagementPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { canAddTeamMember } = usePlanLimit();
+  const { showUpgradeModal } = usePlanLimitModal();
   
   const [organization, setOrganization] = useState<OrganizationWithDetails | null>(null);
   const [members, setMembers] = useState<MemberWithUser[]>([]);
@@ -143,6 +147,16 @@ export default function TeamManagementPage() {
   const handleInviteMember = async () => {
     if (!organization || (!inviteEmail.trim() && !invitePhone.trim())) return;
 
+    // Check plan limit before inviting
+    const limitCheck = await canAddTeamMember(organization.id);
+    if (!limitCheck.allowed) {
+      showUpgradeModal({ 
+        limitType: 'teamMembers',
+        message: limitCheck.message 
+      });
+      return;
+    }
+
     try {
       setIsInviting(true);
       
@@ -171,12 +185,20 @@ export default function TeamManagementPage() {
       }
     } catch (error: any) {
       console.error('Invite error:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to invite member';
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      });
+      // Check if it's a plan limit error from backend
+      if (error.response?.data?.upgradeRequired) {
+        showUpgradeModal({ 
+          limitType: 'teamMembers',
+          message: error.response?.data?.message 
+        });
+      } else {
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to invite member';
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive'
+        });
+      }
     } finally {
       setIsInviting(false);
     }

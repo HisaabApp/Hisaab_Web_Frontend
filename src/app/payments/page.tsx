@@ -90,12 +90,17 @@ export default function PaymentsPage() {
         if (statusRes?.data?.razorpay) {
           setRazorpayStatus(statusRes.data.razorpay);
         }
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load payment settings',
-          variant: 'destructive',
-        });
+      } catch (error: any) {
+        // Only show error if it's not a 403/404 (user doesn't have access or org not found)
+        // This handles the case where user is new or organization was deleted
+        const status = error?.response?.status;
+        if (status !== 403 && status !== 404) {
+          toast({
+            title: 'Error',
+            description: 'Failed to load payment settings',
+            variant: 'destructive',
+          });
+        }
       } finally {
         setIsLoading(false);
       }

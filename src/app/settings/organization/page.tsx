@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { usePlanLimit } from '@/hooks/usePlanLimit';
+import { usePlanLimitModal } from '@/contexts/PlanLimitContext';
 import {
   Dialog,
   DialogContent,
@@ -50,6 +52,8 @@ export default function OrganizationSettingsPage() {
   const { user } = useAuth();
   const { setSelectedBranch, setAvailableBranches, setSelectedOrganization, refreshBranches } = useBranch();
   const { toast } = useToast();
+  const { canAddBranch } = usePlanLimit();
+  const { showUpgradeModal } = usePlanLimitModal();
   
   const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,6 +137,16 @@ export default function OrganizationSettingsPage() {
   const handleCreateBranch = async () => {
     if (!selectedMembership || !branchName.trim()) return;
 
+    // Check plan limit before creating
+    const limitCheck = await canAddBranch(selectedMembership.organization.id);
+    if (!limitCheck.allowed) {
+      showUpgradeModal({ 
+        limitType: 'branches',
+        message: limitCheck.message 
+      });
+      return;
+    }
+
     try {
       setIsCreatingBranch(true);
       const response = await organizationApi.branch.createBranch(
@@ -156,11 +170,19 @@ export default function OrganizationSettingsPage() {
         refreshBranches(); // Update branch selector
       }
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to create branch',
-        variant: 'destructive'
-      });
+      // Check if it's a plan limit error from backend
+      if (error.response?.data?.upgradeRequired) {
+        showUpgradeModal({ 
+          limitType: 'branches',
+          message: error.response?.data?.message 
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Failed to create branch',
+          variant: 'destructive'
+        });
+      }
     } finally {
       setIsCreatingBranch(false);
     }

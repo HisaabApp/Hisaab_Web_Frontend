@@ -67,7 +67,8 @@ export const sendPaymentNotification = async (data: PaymentNotificationData): Pr
     // Check for quota exceeded
     if (isQuotaExceededError(error)) {
       const quotaData = error.response.data;
-      throw new Error(`Message limit reached! You've used all ${quotaData.limit} messages on your ${quotaData.plan} plan. Upgrade to send more.`);
+      const planName = quotaData.plan === 'FREE' ? 'Free' : quotaData.plan === 'PRO' ? 'Pro' : quotaData.plan === 'BUSINESS' ? 'Business' : quotaData.plan;
+      throw new Error(`📱 Message Limit Reached! You've used all ${quotaData.limit} messages on your ${planName} plan. Upgrade to send more.`);
     }
     // Check for payment disabled error
     if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -94,7 +95,8 @@ export const sendPaymentConfirmation = async (data: PaymentConfirmationData): Pr
     // Check for quota exceeded
     if (isQuotaExceededError(error)) {
       const quotaData = error.response.data;
-      throw new Error(`Message limit reached! You've used all ${quotaData.limit} messages on your ${quotaData.plan} plan. Upgrade to send more.`);
+      const planName = quotaData.plan === 'FREE' ? 'Free' : quotaData.plan === 'PRO' ? 'Pro' : quotaData.plan === 'BUSINESS' ? 'Business' : quotaData.plan;
+      throw new Error(`📱 Message Limit Reached! You've used all ${quotaData.limit} messages on your ${planName} plan. Upgrade to send more.`);
     }
     throw new Error(handleApiError(error));
   }

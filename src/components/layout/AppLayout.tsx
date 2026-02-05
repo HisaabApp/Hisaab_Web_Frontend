@@ -8,6 +8,7 @@ import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, B
 import MobileNav from './MobileNav';
 import { NotificationBell } from '@/components/NotificationCenter';
 import BranchSelector from '@/components/BranchSelector';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
@@ -172,6 +173,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
           <NotificationBell />
         </header>
+        {/* Subscription Warning Banner */}
+        <SubscriptionBanner className="mx-4 sm:mx-6 mt-2" />
         <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8 pb-20 md:pb-0">
           <PageTransition>
             {children}

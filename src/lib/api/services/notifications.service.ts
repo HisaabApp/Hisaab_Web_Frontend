@@ -30,13 +30,28 @@ export const notificationsService = {
       });
       return response.data;
     } catch (error) {
-      // Handle payment disabled error with friendly message
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        const data = error.response.data;
-        if (data?.action) {
-          throw new Error(`${data.error} ${data.action}`);
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const data = error.response?.data;
+        
+        // Handle quota exceeded (403)
+        if (status === 403 && data?.error === 'Message quota exceeded') {
+          const limit = data.limit || 10;
+          const plan = data.plan || 'FREE';
+          const planName = plan === 'FREE' ? 'Free' : plan === 'PRO' ? 'Pro' : plan === 'BUSINESS' ? 'Business' : plan;
+          throw new Error(`📱 Message Limit Reached! You've used all ${limit} messages on your ${planName} plan. Upgrade to send more.`);
         }
-        throw new Error(data?.error || 'Failed to send notification');
+        
+        // Handle payment disabled error (400)
+        if (status === 400) {
+          if (data?.action) {
+            throw new Error(`${data.error} ${data.action}`);
+          }
+          throw new Error(data?.error || 'Failed to send notification');
+        }
+        
+        // Other errors
+        throw new Error(data?.error || data?.message || `Request failed with status ${status}`);
       }
       throw error;
     }
@@ -48,7 +63,25 @@ export const notificationsService = {
   async sendBulkNotifications(
     data: BulkNotificationRequest
   ): Promise<BulkNotificationResult> {
-    const response = await apiClient.post('/notifications/bulk', data);
-    return response.data;
+    try {
+      const response = await apiClient.post('/notifications/bulk', data);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const data = error.response?.data;
+        
+        // Handle quota exceeded (403)
+        if (status === 403 && data?.error === 'Message quota exceeded') {
+          const limit = data.limit || 10;
+          const plan = data.plan || 'FREE';
+          const planName = plan === 'FREE' ? 'Free' : plan === 'PRO' ? 'Pro' : plan === 'BUSINESS' ? 'Business' : plan;
+          throw new Error(`📱 Message Limit Reached! You've used all ${limit} messages on your ${planName} plan. Upgrade to send more.`);
+        }
+        
+        throw new Error(data?.error || data?.message || `Request failed with status ${status}`);
+      }
+      throw error;
+    }
   }
 };
