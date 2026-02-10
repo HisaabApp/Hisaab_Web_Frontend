@@ -23,8 +23,35 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 export default function LandingPage() {
+  const sectionsRef = useRef<HTMLDivElement[]>([]);
+
+  // Add smooth scroll animation observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-fade-in-up");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    sectionsRef.current.forEach((section) => {
+      if (section) observer.observe(section);
+    });
+
+    return () => {
+      sectionsRef.current.forEach((section) => {
+        if (section) observer.unobserve(section);
+      });
+    };
+  }, []);
 
   const features = [
     {
@@ -97,42 +124,55 @@ export default function LandingPage() {
   const pricingPlans = [
     {
       name: "Basic",
-      price: "299",
-      description: "Perfect for small businesses",
+      price: "99",
+      description: "Perfect for small to growing businesses",
       popular: false,
       features: [
-        "Up to 100 customers",
-        "500 invoices/month",
-        "SMS reminders",
+        "Up to 1,000 customers",
+        "Up to 100 messages/month",
+        "Up to 3 branches",
+        "Up to 5 team members",
+        "SMS & WhatsApp reminders",
+        "Multi-branch support",
+        "Team collaboration",
         "Basic analytics"
       ],
       buttonText: "Start Free Trial"
     },
     {
-      name: "Professional",
-      price: "599",
-      description: "For growing businesses",
+      name: "Premium",
+      price: "499",
+      description: "For large businesses",
       popular: true,
       features: [
-        "Up to 500 customers",
-        "Unlimited invoices",
+        "Unlimited customers",
+        "Up to 500 messages/month",
+        "Unlimited branches",
+        "Unlimited team members",
         "SMS + WhatsApp reminders",
         "Advanced analytics",
-        "Priority support"
+        "Excel export",
+        "Payment reminders",
+        "Priority support",
+        "Custom branding"
       ],
       buttonText: "Start Free Trial"
     },
     {
       name: "Enterprise",
-      price: "999",
-      description: "For large businesses",
+      // price: null,
+      priceLabel: "Custom",
+      description: "For enterprise needs",
       popular: false,
       features: [
-        "Unlimited customers",
-        "Unlimited everything",
-        "Multi-location support",
+        "Everything in Premium",
+        "Unlimited messages/month",
         "Custom integrations",
-        "24/7 dedicated support"
+        "Dedicated account manager",
+        "24/7 priority support",
+        "Advanced security features",
+        "Custom development",
+        "SLA guarantee"
       ],
       buttonText: "Contact Sales"
     }
@@ -140,6 +180,68 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-slide-in-left {
+          animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .animate-slide-in-right {
+          animation: slideInRight 0.6s ease-out forwards;
+        }
+
+        section {
+          opacity: 0;
+        }
+
+        a {
+          transition: all 0.3s ease-out;
+        }
+
+        button {
+          transition: all 0.3s ease-out;
+        }
+      `}</style>
       {/* Navigation */}
       <nav className="bg-white sticky top-0 z-50 border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,11 +279,11 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-50 via-emerald-50/30 to-white py-16 lg:py-24">
+      <section className="bg-gradient-to-br from-slate-50 via-emerald-50/30 to-white py-16 lg:py-24" ref={(el) => { if (el) sectionsRef.current[0] = el; }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-6">
+            <div className="space-y-6 animate-slide-in-left" style={{ animation: 'slideInLeft 0.8s ease-out' }}>
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Complete Business{" "}
                 <span className="text-emerald-600">Billing</span>
@@ -218,7 +320,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right Content - Product Video */}
-            <div id="demo-video" className="relative">
+            <div id="demo-video" className="relative animate-slide-in-right" style={{ animation: 'slideInRight 0.8s ease-out 0.2s both' }}>
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border">
                 <video
                   autoPlay
@@ -250,7 +352,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-white" ref={(el) => { if (el) sectionsRef.current[1] = el; }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -263,7 +365,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-white">
+              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-white" style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both` }}>
                 <CardContent className="p-6">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${feature.color}`}>
                     <feature.icon className="h-6 w-6" />
@@ -286,7 +388,7 @@ export default function LandingPage() {
       </section>
 
       {/* Business Types Section */}
-      <section id="business" className="py-20 bg-slate-50">
+      <section id="business" className="py-20 bg-slate-50" ref={(el) => { if (el) sectionsRef.current[2] = el; }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -299,7 +401,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {businessTypes.map((business, index) => (
-              <Card key={index} className="border-0 shadow-sm bg-white text-center">
+              <Card key={index} className="border-0 shadow-sm bg-white text-center" style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both` }}>
                 <CardContent className="p-6">
                   <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <business.icon className="h-6 w-6 text-slate-600" />
@@ -314,7 +416,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-white">
+      <section id="pricing" className="py-20 bg-white" ref={(el) => { if (el) sectionsRef.current[3] = el; }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -330,6 +432,7 @@ export default function LandingPage() {
               <Card 
                 key={index} 
                 className={`relative bg-slate-800 border-0 shadow-xl ${plan.popular ? 'ring-2 ring-emerald-500' : ''}`}
+                style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.15}s both` }}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -344,8 +447,14 @@ export default function LandingPage() {
                       {plan.name}
                     </h3>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className={`text-3xl font-bold ${plan.popular ? 'text-emerald-400' : 'text-emerald-400'}`}>Rs. {plan.price}</span>
-                      <span className="text-gray-400">/month</span>
+                      {plan.price !== null ? (
+                        <>
+                          <span className={`text-3xl font-bold ${plan.popular ? 'text-emerald-400' : 'text-emerald-400'}`}>Rs. {plan.price}</span>
+                          <span className="text-gray-400">/month</span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-bold text-emerald-400">{plan.priceLabel}</span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-400 mt-2">{plan.description}</p>
                   </div>
@@ -359,17 +468,31 @@ export default function LandingPage() {
                     ))}
                   </ul>
 
-                  <Link href="/register" className="block">
-                    <Button 
-                      className={`w-full rounded-full ${
-                        plan.popular 
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                          : 'bg-white text-slate-800 hover:bg-gray-100'
-                      }`}
-                    >
-                      {plan.buttonText}
-                    </Button>
-                  </Link>
+                  {plan.buttonText === "Contact Sales" ? (
+                    <a href="mailto:support@hisaabapp.com?subject=Enterprise Plan Inquiry" className="block">
+                      <Button 
+                        className={`w-full rounded-full ${
+                          plan.popular 
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                            : 'bg-white text-slate-800 hover:bg-gray-100'
+                        }`}
+                      >
+                        {plan.buttonText}
+                      </Button>
+                    </a>
+                  ) : (
+                    <Link href="/register" className="block">
+                      <Button 
+                        className={`w-full rounded-full ${
+                          plan.popular 
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                            : 'bg-white text-slate-800 hover:bg-gray-100'
+                        }`}
+                      >
+                        {plan.buttonText}
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -378,27 +501,27 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-emerald-600">
+      <section className="py-20 bg-emerald-600" ref={(el) => { if (el) sectionsRef.current[4] = el; }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
             Ready to Transform Your Business Billing?
           </h2>
-          <p className="text-lg text-emerald-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-emerald-100 mb-8 max-w-2xl mx-auto" style={{ animation: 'fadeInUp 0.6s ease-out 0.1s both' }}>
             Join thousands of businesses already using HisaabApp to streamline their billing and grow their revenue.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center" style={{ animation: 'fadeInUp 0.6s ease-out 0.2s both' }}>
             <Link href="/register">
               <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 rounded-full px-8 h-12">
                 Start Your Free Trial
               </Button>
             </Link>
-<Link href="/register">
+            <Link href="/register">
               <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-white border-white hover:bg-white/10">
                 Schedule Demo
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-emerald-200 mt-6">
+          <p className="text-sm text-emerald-200 mt-6" style={{ animation: 'fadeInUp 0.6s ease-out 0.3s both' }}>
             14-day free trial • No credit card required • Cancel anytime
           </p>
         </div>
