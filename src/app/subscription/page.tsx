@@ -159,6 +159,37 @@ function SubscriptionContent() {
     return Math.round(basePrice - discount);
   };
 
+  // Check if user is within 10-day upgrade window
+  const isWithinUpgradeWindow = () => {
+    if (!subscription?.planExpiry || subscription.plan === 'FREE') return false;
+    
+    const now = new Date();
+    const expiry = new Date(subscription.planExpiry);
+    const daysRemaining = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Within upgrade window if 10 days or less remaining AND still active
+    return daysRemaining <= 10 && daysRemaining > 0;
+  };
+
+  // Get days remaining in current subscription
+  const getDaysRemaining = () => {
+    if (!subscription?.planExpiry || subscription.plan === 'FREE') return -1;
+    
+    const now = new Date();
+    const expiry = new Date(subscription.planExpiry);
+    const daysRemaining = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return daysRemaining;
+  };
+
+  // Check if can upgrade to a longer period
+  const canUpgradeToLongerPeriod = (period: BillingPeriod) => {
+    if (subscription?.plan === 'FREE') return true; // FREE users can upgrade anytime
+    if (period === 'monthly') return true; // Always allow 1-month renewal
+    
+    // Longer periods only allowed within 10-day window
+    return isWithinUpgradeWindow();
+  };
+
   const calculateUpgradePrice = (targetPlan: string, period: BillingPeriod) => {
     const currentPlan = subscription?.plan || 'FREE';
     
@@ -171,7 +202,7 @@ function SubscriptionContent() {
     // Calculate the price for target plan
     const targetPrice = calculatePrice(targetPlan, period);
     
-    // If upgrading from a paid plan, calculate pro-rated credit
+    // If upgrading from a paid plan, calculate pro-rated credit based on DAILY rate
     if (currentPlan !== 'FREE' && subscription?.planExpiry) {
       const now = new Date();
       const expiry = new Date(subscription.planExpiry);
@@ -243,6 +274,18 @@ function SubscriptionContent() {
       const orderResponse = await subscriptionService.createOrder(planKey as 'BASIC' | 'PREMIUM', periodMonths);
       
       if (!orderResponse.success || !orderResponse.data) {
+        // Check if error is due to upgrade window validation
+        const errorMsg = orderResponse.message || '';
+        if (errorMsg.includes('upgrade window') || errorMsg.includes('10 days')) {
+          toast({ 
+            title: 'Cannot Upgrade Now', 
+            description: errorMsg,
+            variant: 'destructive'
+          });
+          setUpgrading(null);
+          return;
+        }
+
         // Demo mode - upgrade without payment
         const result = await subscriptionService.upgradePlan(planKey as 'BASIC' | 'PREMIUM');
         if (result.success) {
@@ -350,31 +393,59 @@ function SubscriptionContent() {
         )}
 
         {/* Billing Period Selector */}
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col items-center gap-3 mb-8">
           <div className="inline-flex items-center bg-muted p-1 rounded-lg">
-            {(Object.entries(BILLING_PERIODS) as [BillingPeriod, PricingConfig][]).map(([key, config]) => (
-              <button
-                key={key}
-                onClick={() => setBillingPeriod(key)}
-                className={`
-                  px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-all
-                  ${billingPeriod === key 
-                    ? 'bg-background shadow-sm text-foreground' 
-                    : 'text-muted-foreground hover:text-foreground'}
-                `}
-              >
-                {config.label}
-                {config.discount > 0 && (
-                  <span className="ml-1 text-xs text-green-600 font-bold">-{config.discount}%</span>
-                )}
-              </button>
-            ))}
+            {(Object.entries(BILLING_PERIODS) as [BillingPeriod, PricingConfig][]).map(([key, config]) => {
+              const isDisabled = !canUpgradeToLongerPeriod(key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => !isDisabled && setBillingPeriod(key)}
+                  disabled={isDisabled}
+                  className={`
+                    px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-all
+                    ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
+                    ${billingPeriod === key 
+                      ? 'bg-background shadow-sm text-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'}
+                  `}
+                  title={isDisabled ? `Available within 10 days of renewal` : ''}
+                >
+                  {config.label}
+                  {config.discount > 0 && (
+                    <span className="ml-1 text-xs text-green-600 font-bold">-{config.discount}%</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Upgrade Window Notice */}
+          {currentPlan !== 'FREE' && (
+            <div className="text-xs text-muted-foreground text-center max-w-md">
+              {isWithinUpgradeWindow() ? (
+                <span className="text-green-600 font-medium">
+                  ✅ 10-day upgrade window active - Upgrade to longer plans now! 
+                  ({getDaysRemaining()} days remaining)
+                </span>
+              ) : getDaysRemaining() > 0 ? (
+                <span>
+                  Longer plans available in {30 - getDaysRemaining()} days. 
+                  You can renew for 1 month anytime.
+                </span>
+              ) : null}
+            </div>
+          )}
         </div>
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {(Object.entries(PLANS) as [string, PlanConfig][]).map(([key, plan]) => {
+          {Object.entries(PLANS).length === 0 ? (
+            <div className="col-span-3 text-center py-8">
+              <p className="text-muted-foreground">No plans available</p>
+            </div>
+          ) : (
+            Object.entries(PLANS).map(([key, plan]) => {
             const price = calculatePrice(key, billingPeriod);
             const upgradePrice = calculateUpgradePrice(key, billingPeriod);
             const isCurrentPlan = currentPlan === key;
@@ -487,7 +558,8 @@ function SubscriptionContent() {
                     <Button 
                       className="w-full"
                       onClick={() => handleUpgrade(key)}
-                      disabled={upgrading !== null}
+                      disabled={upgrading !== null || !canUpgradeToLongerPeriod(billingPeriod)}
+                      title={!canUpgradeToLongerPeriod(billingPeriod) ? 'Available within 10 days of renewal' : ''}
                     >
                       {upgrading === key ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -495,7 +567,12 @@ function SubscriptionContent() {
                         <ArrowRight className="h-4 w-4 mr-2" />
                       )}
                       {currentPlan !== 'FREE' && upgradePrice < price ? (
-                        <>Upgrade for Rs.{upgradePrice.toLocaleString()}</>
+                        <>
+                          Upgrade for Rs.{upgradePrice.toLocaleString()}
+                          <span className="text-xs opacity-75 ml-1">
+                            (save {(price - upgradePrice).toLocaleString()})
+                          </span>
+                        </>
                       ) : (
                         <>Get {plan.name} - Rs.{price.toLocaleString()}</>
                       )}
@@ -520,7 +597,8 @@ function SubscriptionContent() {
                 </CardContent>
               </Card>
             );
-          })}
+          })
+          )}
         </div>
 
         {/* Trust Badges */}
@@ -544,9 +622,22 @@ function SubscriptionContent() {
           <h2 className="text-xl font-bold text-center mb-6">Frequently Asked Questions</h2>
           <div className="space-y-4">
             <div className="bg-muted/50 rounded-lg p-4">
+              <h3 className="font-medium mb-1">💡 What is the 10-Day Upgrade Window?</h3>
+              <p className="text-sm text-muted-foreground">
+                We offer a 10-day upgrade window before your subscription expires. During this period, you can upgrade to longer plans (3 months, 6 months, 1 year) and receive credit for your remaining days. 
+                <strong> Example:</strong> If you subscribed for 1 month at ₹99 and have 5 days left, upgrading to 3 months costs only ₹250 (₹267 - ₹17 credit) instead of ₹267.
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h3 className="font-medium mb-1">📅 What happens after my 10-day window?</h3>
+              <p className="text-sm text-muted-foreground">
+                After the upgrade window closes, you can only renew for 1 month. This prevents accidental bulk purchases. Once you renew for 1 month, you'll get another 10-day window at the end of that month.
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-4">
               <h3 className="font-medium mb-1">Can I upgrade or downgrade anytime?</h3>
               <p className="text-sm text-muted-foreground">
-                <strong>Upgrades:</strong> Applied immediately! Pay only the difference and get instant access to new features.<br/>
+                <strong>Upgrades:</strong> Applied immediately! You'll get credit for remaining days on your current plan. Pay only the difference and upgrade to longer plans within 10 days of expiry.<br/>
                 <strong>Downgrades:</strong> Cannot downgrade during active paid period. You've already paid, so you keep your current plan features until the end of your billing period.
               </p>
             </div>

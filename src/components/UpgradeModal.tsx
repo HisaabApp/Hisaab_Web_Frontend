@@ -3,7 +3,7 @@
  * Modal dialog that appears when user hits plan limits
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -38,12 +38,14 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 }) => {
   const [plans, setPlans] = useState<Record<string, PlanDetails> | null>(null);
   const [loading, setLoading] = useState(false);
+  const userClosedRef = useRef(false);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
       loadPlans();
+      userClosedRef.current = false; // Reset when modal opens
     }
   }, [isOpen]);
 
@@ -107,7 +109,13 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // Only close if user explicitly triggered close (not just prop changes)
+      if (!open && isOpen) {
+        userClosedRef.current = true;
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">

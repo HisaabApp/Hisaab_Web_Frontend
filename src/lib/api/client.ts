@@ -152,8 +152,13 @@ apiClient.interceptors.response.use(
     // Handle 403 Forbidden - Branch access denied
     if (error.response?.status === 403) {
       const message = error.response?.data?.message || '';
-      // If it's a branch access error, clear the invalid branch from localStorage
-      if (message.includes('branch') || message.includes('Branch')) {
+      const url = error.config?.url || '';
+      
+      // Don't reload for plan limit checks - these are expected and handled by the client
+      const isPlanCheckEndpoint = url.includes('/plan/check/');
+      
+      // If it's a branch access error (but not a plan check), clear the invalid branch from localStorage
+      if (!isPlanCheckEndpoint && (message.includes('branch') || message.includes('Branch'))) {
         if (typeof window !== 'undefined') {
           console.warn('Branch access denied - clearing stored branch');
           localStorage.removeItem('selectedBranch');

@@ -138,23 +138,30 @@ export default function OrganizationSettingsPage() {
   const handleCreateBranch = async () => {
     if (!selectedMembership || !branchName.trim()) return;
 
-    // Check plan limit before creating
-    const limitCheck = await canAddBranch(selectedMembership.organization.id);
-    if (!limitCheck.allowed) {
-      // Close the branch dialog before showing upgrade modal
-      setIsBranchDialogOpen(false);
-      // Small delay to allow dialog to close before showing upgrade modal
-      setTimeout(() => {
-        showUpgradeModal({ 
-          limitType: 'branches',
-          message: limitCheck.message 
-        });
-      }, 100);
-      return;
-    }
-
     try {
       setIsCreatingBranch(true);
+      
+      // Check plan limit before creating
+      console.log('Checking branch limit for org:', selectedMembership.organization.id);
+      const limitCheck = await canAddBranch(selectedMembership.organization.id);
+      console.log('Branch limit check result:', limitCheck);
+      
+      if (!limitCheck.allowed) {
+        console.log('Branch limit reached, showing upgrade modal');
+        // Close the branch dialog before showing upgrade modal
+        setIsBranchDialogOpen(false);
+        // Longer delay to allow dialog to fully close and React to settle
+        setTimeout(() => {
+          showUpgradeModal({ 
+            limitType: 'branches',
+            message: limitCheck.message 
+          });
+        }, 300);
+        setIsCreatingBranch(false);
+        return;
+      }
+
+      console.log('Branch limit check passed, creating branch');
       const response = await organizationApi.branch.createBranch(
         selectedMembership.organization.id,
         {
@@ -177,8 +184,10 @@ export default function OrganizationSettingsPage() {
         refreshBranches(); // Update branch selector
       }
     } catch (error: any) {
+      console.error('Error creating branch:', error);
       // Check if it's a plan limit error from backend
       if (error.response?.data?.upgradeRequired) {
+        console.log('Backend returned upgrade required');
         // Close the branch dialog before showing upgrade modal
         setIsBranchDialogOpen(false);
         setTimeout(() => {
@@ -186,7 +195,7 @@ export default function OrganizationSettingsPage() {
             limitType: 'branches',
             message: error.response?.data?.message 
           });
-        }, 100);
+        }, 300);
       } else {
         toast({
           title: 'Error',
@@ -426,7 +435,10 @@ export default function OrganizationSettingsPage() {
                   </div>
                   <DialogFooter>
                     <Button 
-                      onClick={handleCreateBranch} 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCreateBranch();
+                      }}
                       disabled={!branchName.trim() || isCreatingBranch}
                     >
                       {isCreatingBranch ? (
