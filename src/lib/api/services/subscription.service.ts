@@ -63,6 +63,8 @@ export interface UpgradeResponse {
   demoMode?: boolean;
   requiresPayment?: boolean;
   razorpayConfigured?: boolean;
+  scheduled?: boolean;
+  effectiveDate?: string;
 }
 
 export interface BillingTransaction {
@@ -88,6 +90,8 @@ export interface CancelResponse {
   data?: {
     effectiveDate: string;
   };
+  scheduled?: boolean;
+  effectiveDate?: string;
 }
 
 export const subscriptionService = {
@@ -134,8 +138,8 @@ export const subscriptionService = {
   /**
    * Create Razorpay order for subscription upgrade
    */
-  async createOrder(plan: 'BASIC' | 'PREMIUM'): Promise<CreateOrderResponse> {
-    const response = await apiClient.post('/subscription/create-order', { plan });
+  async createOrder(plan: 'BASIC' | 'PREMIUM', months: number = 1): Promise<CreateOrderResponse> {
+    const response = await apiClient.post('/subscription/create-order', { plan, months });
     return response.data;
   },
 
@@ -150,6 +154,20 @@ export const subscriptionService = {
       plan,
       ...paymentDetails 
     });
+    return response.data;
+  },
+
+  /**
+   * Sync organization plan with user plan (fix for existing users)
+   */
+  async syncOrganizationPlan(): Promise<{
+    success: boolean;
+    message: string;
+    userPlan?: string;
+    organizationPlan?: string;
+    previousOrgPlan?: string;
+  }> {
+    const response = await apiClient.post('/subscription/sync-organization-plan');
     return response.data;
   }
 };

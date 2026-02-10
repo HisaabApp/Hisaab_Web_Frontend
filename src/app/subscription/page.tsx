@@ -66,7 +66,7 @@ const PLANS: Record<string, PlanConfig> = {
   },
   BASIC: {
     name: 'Basic',
-    monthlyPrice: 499,
+    monthlyPrice: 99,
     color: 'blue',
     popular: true,
     icon: <Zap className="h-6 w-6" />,
@@ -89,7 +89,7 @@ const PLANS: Record<string, PlanConfig> = {
   },
   PREMIUM: {
     name: 'Premium',
-    monthlyPrice: 999,
+    monthlyPrice: 499,
     color: 'amber',
     icon: <Crown className="h-6 w-6" />,
     limits: {
@@ -186,13 +186,45 @@ function SubscriptionContent() {
   };
 
   const handleUpgrade = useCallback(async (planKey: string) => {
+    const currentPlan = subscription?.plan || 'FREE';
+    const planOrder = { FREE: 0, BASIC: 1, PREMIUM: 2 };
+    const isDowngrade = planOrder[planKey as keyof typeof planOrder] < planOrder[currentPlan as keyof typeof planOrder];
+
+    // Check if this is a downgrade during active paid period
+    if (isDowngrade && subscription?.planExpiry) {
+      const now = new Date();
+      const expiry = new Date(subscription.planExpiry);
+      
+      if (expiry > now) {
+        // Active paid period - cannot downgrade immediately
+        toast({ 
+          title: 'Cannot Downgrade Now', 
+          description: `You have an active ${currentPlan} subscription until ${expiry.toLocaleDateString()}. You've already paid for this period and will keep access to all features until then.`,
+          variant: 'default'
+        });
+        return;
+      }
+    }
+
     if (planKey === 'FREE') {
       // Handle downgrade
       try {
         setUpgrading(planKey);
-        await subscriptionService.cancelSubscription(true);
+        const result = await subscriptionService.cancelSubscription(true);
         await loadData();
-        toast({ title: 'Plan Changed', description: 'You are now on the Free plan.' });
+        
+        if (result.scheduled) {
+          toast({ 
+            title: 'Downgrade Scheduled', 
+            description: result.message,
+            variant: 'default'
+          });
+        } else {
+          toast({ 
+            title: 'Plan Changed', 
+            description: result.message || 'You are now on the Free plan.' 
+          });
+        }
       } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
       } finally {
@@ -208,14 +240,26 @@ function SubscriptionContent() {
       setUpgrading(planKey);
 
       // Try to create order
-      const orderResponse = await subscriptionService.createOrder(planKey as 'BASIC' | 'PREMIUM');
+      const orderResponse = await subscriptionService.createOrder(planKey as 'BASIC' | 'PREMIUM', periodMonths);
       
       if (!orderResponse.success || !orderResponse.data) {
         // Demo mode - upgrade without payment
         const result = await subscriptionService.upgradePlan(planKey as 'BASIC' | 'PREMIUM');
         if (result.success) {
           await loadData();
-          toast({ title: 'Success!', description: `Upgraded to ${PLANS[planKey].name} plan.` });
+          
+          if (result.scheduled) {
+            toast({ 
+              title: 'Plan Change Scheduled', 
+              description: result.message,
+              variant: 'default'
+            });
+          } else {
+            toast({ 
+              title: 'Success!', 
+              description: result.message || `Upgraded to ${PLANS[planKey].name} plan.` 
+            });
+          }
         }
         setUpgrading(null);
         return;
@@ -229,7 +273,7 @@ function SubscriptionContent() {
 
       const options = {
         key: orderResponse.data.keyId,
-        amount: amount * 100,
+        amount: orderResponse.data.amount * 100, // Use backend amount to ensure consistency
         currency: 'INR',
         name: 'HisaabApp',
         description: `${PLANS[planKey].name} Plan - ${BILLING_PERIODS[billingPeriod].label}`,
@@ -243,7 +287,10 @@ function SubscriptionContent() {
             });
             if (result.success) {
               await loadData();
-              toast({ title: 'Payment Successful!', description: `Welcome to ${PLANS[planKey].name}!` });
+              toast({ 
+                title: 'Payment Successful!', 
+                description: result.message || `Welcome to ${PLANS[planKey].name}!` 
+              });
             }
           } catch (err: any) {
             toast({ title: 'Error', description: 'Payment verification failed.', variant: 'destructive' });
@@ -288,11 +335,16 @@ function SubscriptionContent() {
           <div className="flex justify-center mb-6">
             <Badge variant="outline" className="px-4 py-1.5 text-sm">
               Current Plan: <span className="font-bold ml-1">{PLANS[currentPlan].name}</span>
-              {subscription?.planExpiry && (
-                <span className="ml-2 text-muted-foreground">
-                  • Expires {new Date(subscription.planExpiry).toLocaleDateString()}
-                </span>
-              )}
+              {subscription?.planExpiry && (() => {
+                const expiry = new Date(subscription.planExpiry);
+                const now = new Date();
+                const isActive = expiry > now;
+                return (
+                  <span className={`ml-2 ${isActive ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
+                    • {isActive ? `Active until ${expiry.toLocaleDateString()}` : `Expired ${expiry.toLocaleDateString()}`}
+                  </span>
+                );
+              })()}
             </Badge>
           </div>
         )}
@@ -334,6 +386,10 @@ function SubscriptionContent() {
               (key === 'FREE' && currentPlan !== 'FREE') ||
               (key === 'BASIC' && currentPlan === 'PREMIUM')
             );
+            
+            // Check if downgrade is blocked due to active paid period
+            const hasActivePlan = isDowngrade && subscription?.planExpiry && 
+              (new Date(subscription.planExpiry).getTime() > new Date().getTime());
 
             return (
               <Card 
@@ -446,15 +502,19 @@ function SubscriptionContent() {
                     </Button>
                   ) : isDowngrade ? (
                     <Button 
-                      variant="ghost" 
-                      className="w-full text-muted-foreground"
-                      onClick={() => handleUpgrade(key)}
-                      disabled={upgrading !== null}
+                      variant={hasActivePlan ? "outline" : "ghost"} 
+                      className={`w-full ${hasActivePlan ? 'opacity-60 cursor-not-allowed' : 'text-muted-foreground'}`}
+                      onClick={() => !hasActivePlan && handleUpgrade(key)}
+                      disabled={upgrading !== null || !!hasActivePlan}
                     >
                       {upgrading === key ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : null}
-                      Downgrade to {plan.name}
+                      {hasActivePlan ? (
+                        <span className="text-xs">🔒 Available after {new Date(subscription!.planExpiry!).toLocaleDateString()}</span>
+                      ) : (
+                        `Downgrade to ${plan.name}`
+                      )}
                     </Button>
                   ) : null}
                 </CardContent>
@@ -486,8 +546,8 @@ function SubscriptionContent() {
             <div className="bg-muted/50 rounded-lg p-4">
               <h3 className="font-medium mb-1">Can I upgrade or downgrade anytime?</h3>
               <p className="text-sm text-muted-foreground">
-                Yes! You can change your plan anytime. When upgrading, you only pay the difference. 
-                When downgrading, your current plan stays active until it expires.
+                <strong>Upgrades:</strong> Applied immediately! Pay only the difference and get instant access to new features.<br/>
+                <strong>Downgrades:</strong> Cannot downgrade during active paid period. You've already paid, so you keep your current plan features until the end of your billing period.
               </p>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">

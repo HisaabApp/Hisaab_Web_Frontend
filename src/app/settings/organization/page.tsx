@@ -66,6 +66,7 @@ export default function OrganizationSettingsPage() {
   const [branchName, setBranchName] = useState('');
   const [branchAddress, setBranchAddress] = useState('');
   const [branchPhone, setBranchPhone] = useState('');
+  const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   
   // Organization creation states
@@ -140,10 +141,15 @@ export default function OrganizationSettingsPage() {
     // Check plan limit before creating
     const limitCheck = await canAddBranch(selectedMembership.organization.id);
     if (!limitCheck.allowed) {
-      showUpgradeModal({ 
-        limitType: 'branches',
-        message: limitCheck.message 
-      });
+      // Close the branch dialog before showing upgrade modal
+      setIsBranchDialogOpen(false);
+      // Small delay to allow dialog to close before showing upgrade modal
+      setTimeout(() => {
+        showUpgradeModal({ 
+          limitType: 'branches',
+          message: limitCheck.message 
+        });
+      }, 100);
       return;
     }
 
@@ -166,16 +172,21 @@ export default function OrganizationSettingsPage() {
         setBranchName('');
         setBranchAddress('');
         setBranchPhone('');
+        setIsBranchDialogOpen(false); // Close dialog on success
         loadOrganizations();
         refreshBranches(); // Update branch selector
       }
     } catch (error: any) {
       // Check if it's a plan limit error from backend
       if (error.response?.data?.upgradeRequired) {
-        showUpgradeModal({ 
-          limitType: 'branches',
-          message: error.response?.data?.message 
-        });
+        // Close the branch dialog before showing upgrade modal
+        setIsBranchDialogOpen(false);
+        setTimeout(() => {
+          showUpgradeModal({ 
+            limitType: 'branches',
+            message: error.response?.data?.message 
+          });
+        }, 100);
       } else {
         toast({
           title: 'Error',
@@ -370,7 +381,7 @@ export default function OrganizationSettingsPage() {
               </div>
               
               {isOwnerOrManager && (
-                <Dialog>
+                <Dialog open={isBranchDialogOpen} onOpenChange={setIsBranchDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />

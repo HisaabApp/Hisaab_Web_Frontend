@@ -107,7 +107,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
               </div>
 
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">{recommendedPlanDetails.currency}{recommendedPlanDetails.price}</span>
+                <span className="text-3xl font-bold">₹{recommendedPlanDetails.price}</span>
                 <span className="text-muted-foreground">/month</span>
               </div>
 
