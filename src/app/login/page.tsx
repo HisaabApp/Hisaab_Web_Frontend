@@ -162,15 +162,18 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); clearError(); setValidationError(''); }}>
-            <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 h-10 sm:h-11">
+            <TabsList className="grid w-full grid-cols-1 mb-4 sm:mb-6 h-10 sm:h-11">
               <TabsTrigger value="email" className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                 <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Email
               </TabsTrigger>
+              {/* Phone OTP Login Tab - DISABLED (no OTP service) */}
+              {/* 
               <TabsTrigger value="phone" className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                 <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Phone
               </TabsTrigger>
+              */}
             </TabsList>
 
             {/* Email Login Tab */}
@@ -228,7 +231,8 @@ export default function LoginPage() {
               </form>
             </TabsContent>
 
-            {/* Phone OTP Login Tab */}
+            {/* Phone OTP Login Tab - DISABLED (no OTP service) */}
+            {/*
             <TabsContent value="phone">
               {!otpSent ? (
                 // Phone number input form
@@ -351,6 +355,7 @@ export default function LoginPage() {
                 </form>
               )}
             </TabsContent>
+            */}
           </Tabs>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">

@@ -158,6 +158,14 @@ export const subscriptionService = {
   },
 
   /**
+   * Cancel a pending payment (release upgrade lock when user closes payment modal)
+   */
+  async cancelPayment(): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post('/subscription/cancel-payment');
+    return response.data;
+  },
+
+  /**
    * Sync organization plan with user plan (fix for existing users)
    */
   async syncOrganizationPlan(): Promise<{

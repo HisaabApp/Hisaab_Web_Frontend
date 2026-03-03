@@ -342,7 +342,18 @@ function SubscriptionContent() {
         },
         prefill: { name: user?.name || '', email: user?.email || '', contact: user?.phone || '' },
         theme: { color: '#10b981' },
-        modal: { ondismiss: () => setUpgrading(null) }
+        modal: { 
+          ondismiss: async () => {
+            // User closed the payment modal without completing payment
+            // Release the upgrade lock on the backend
+            try {
+              await subscriptionService.cancelPayment();
+            } catch (err: any) {
+              console.error('Failed to cancel payment lock:', err);
+            }
+            setUpgrading(null);
+          }
+        }
       };
 
       new window.Razorpay(options).open();

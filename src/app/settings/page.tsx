@@ -767,7 +767,8 @@ export default function SettingsPage() {
 
         <TabsContent value="password">
           <div className="space-y-4">
-            {/* Phone Link Section */}
+            {/* Phone Link Section - DISABLED (no OTP service) */}
+            {/*
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -925,6 +926,7 @@ export default function SettingsPage() {
                 )}
               </CardContent>
             </Card>
+            */}
 
             {/* Password Change Section */}
             <Card>
