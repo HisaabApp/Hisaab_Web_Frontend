@@ -158,7 +158,7 @@ export default function CustomersPage() {
       case 'oldest': result.sort((a, b) => new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime()); break;
     }
     return result;
-  }, [customersWithDetails, searchTerm, sortBy, statusFilter]);
+  }, [customersWithDetails, debouncedSearch, sortBy, statusFilter]);
 
   const stats = useMemo(() => ({
     totalOutstanding: customersWithDetails.reduce((sum, c) => sum + c.outstanding, 0),
@@ -562,9 +562,9 @@ export default function CustomersPage() {
         ) : (
           <Card className="p-12"><div className="text-center">
             <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{searchTerm || statusFilter !== 'all' ? 'No customers found' : 'No customers yet'}</h3>
-            <p className="text-muted-foreground mb-6">{searchTerm || statusFilter !== 'all' ? 'Try adjusting filters' : 'Add your first customer'}</p>
-            {!searchTerm && statusFilter === 'all' && <Button onClick={handleAddCustomer}><PlusCircle className="mr-2 h-4 w-4" /> Add Customer</Button>}
+            <h3 className="text-lg font-semibold mb-2">{debouncedSearch || statusFilter !== 'all' ? 'No customers found' : 'No customers yet'}</h3>
+            <p className="text-muted-foreground mb-6">{debouncedSearch || statusFilter !== 'all' ? 'Try adjusting filters' : 'Add your first customer'}</p>
+            {!debouncedSearch && statusFilter === 'all' && <Button onClick={handleAddCustomer}><PlusCircle className="mr-2 h-4 w-4" /> Add Customer</Button>}
           </div></Card>
         )}
 
