@@ -405,7 +405,7 @@ function SubscriptionContent() {
 
         {/* Billing Period Selector */}
         <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="inline-flex items-center bg-muted p-1 rounded-lg">
+          <div className="w-full sm:inline-flex sm:items-center bg-muted p-1 rounded-lg sm:p-1 grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-0">
             {(Object.entries(BILLING_PERIODS) as [BillingPeriod, PricingConfig][]).map(([key, config]) => {
               const isDisabled = !canUpgradeToLongerPeriod(key);
               return (
@@ -414,7 +414,7 @@ function SubscriptionContent() {
                   onClick={() => !isDisabled && setBillingPeriod(key)}
                   disabled={isDisabled}
                   className={`
-                    px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-all
+                    px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap
                     ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
                     ${billingPeriod === key 
                       ? 'bg-background shadow-sm text-foreground' 
@@ -422,9 +422,9 @@ function SubscriptionContent() {
                   `}
                   title={isDisabled ? `Available within 10 days of renewal` : ''}
                 >
-                  {config.label}
+                  <span className="block sm:inline">{config.label}</span>
                   {config.discount > 0 && (
-                    <span className="ml-1 text-xs text-green-600 font-bold">-{config.discount}%</span>
+                    <span className="ml-0.5 sm:ml-1 text-xs text-green-600 font-bold block sm:inline">-{config.discount}%</span>
                   )}
                 </button>
               );
