@@ -439,9 +439,9 @@ function SubscriptionContent() {
                   ✅ 10-day upgrade window active - Upgrade to longer plans now! 
                   ({getDaysRemaining()} days remaining)
                 </span>
-              ) : getDaysRemaining() > 0 ? (
+              ) : getDaysRemaining() > 10 ? (
                 <span>
-                  Longer plans available in {30 - getDaysRemaining()} days. 
+                  Longer plans available in {getDaysRemaining() - 10} days. 
                   You can renew for 1 month anytime.
                 </span>
               ) : null}
