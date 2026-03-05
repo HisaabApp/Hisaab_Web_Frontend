@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -76,8 +87,9 @@ export default function ExpenseFormModal({
   targetMonthYear,
   onSuccess,
 }: ExpenseFormModalProps) {
-  const { addExpense, updateExpense, getExpenseForCustomerByMonthYear } = useAppContext();
+  const { addExpense, updateExpense, deleteExpense, getExpenseForCustomerByMonthYear } = useAppContext();
   const { toast } = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -142,6 +154,36 @@ export default function ExpenseFormModal({
       toast({ title: "Error", description: "An error occurred. Please try again.", variant: "destructive" });
       console.error("Expense form error:", error);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!expense) return;
+    
+    try {
+      const success = await deleteExpense(expense.id);
+      if (success) {
+        toast({ 
+          title: "Expense Deleted", 
+          description: `Expense for ${format(new Date(expense.year, expense.month - 1), 'MMMM yyyy')} has been deleted.`
+        });
+        onSuccess(); // Call parent refresh
+        onOpenChange(false);
+      } else {
+        toast({ 
+          title: "Error", 
+          description: "Failed to delete expense. Please try again.", 
+          variant: "destructive" 
+        });
+      }
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "An error occurred while deleting the expense.", 
+        variant: "destructive" 
+      });
+      console.error("Delete expense error:", error);
+    }
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -230,10 +272,38 @@ export default function ExpenseFormModal({
             />
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              {expense && (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
               <Button type="submit">{expense ? 'Save Changes' : 'Add Expense'}</Button>
             </DialogFooter>
           </form>
         </Form>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Expense?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the expense record for {expense && format(new Date(expense.year, expense.month - 1), 'MMMM yyyy')}. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
