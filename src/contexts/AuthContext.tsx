@@ -277,6 +277,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   /**
    * Register new user
+   * (Email verification removed - users register and login immediately)
    */
   const register = async (data: RegisterData) => {
     try {
@@ -291,33 +292,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const response = await authService.register(normalizedData);
       
-      // Check if email verification is required
-      if (response.data?.requiresEmailVerification) {
-        // Store email for verification page (persists across reloads)
-        const email = normalizedData.email;
-        setPendingEmailVerification(email);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('pendingEmailVerification', email);
-        }
-        setError(null);
-        // Navigate to email verification page
-        router.push('/verify-email');
-        return;
-      }
-      
-      // Normal registration with immediate login
-      if (response.success && response.data?.token && response.data?.user) {
-        const { token, user: userData } = response.data;
+      // Register and auto-login (no email verification required)
+      if (response.success && response.data?.user) {
+        const userData = response.data.user;
         
-        // Set token in axios client and localStorage
-        setAuthToken(token);
+        // Try to get token from response, or extract from auth header
+        let token = response.data.token;
+        if (!token && typeof window !== 'undefined') {
+          // Token might be in localStorage if backend set it
+          const config = require('@/lib/config').default;
+          const stored = localStorage.getItem(config.auth.tokenKey);
+          if (stored) token = stored;
+        }
+        
+        // Set token if available
+        if (token) {
+          setAuthToken(token);
+        }
         
         // Set user state
         setUser(userData);
         
         // Store user in localStorage
         if (typeof window !== 'undefined') {
-          localStorage.setItem(config.auth.userKey, JSON.stringify(userData));
+          localStorage.setItem('auth_user', JSON.stringify(userData));
         }
         
         // Redirect to dashboard
@@ -381,53 +379,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
-   * Verify email with OTP
+   * Verify email with OTP (DISABLED - Feature removed)
+   * This is kept for future implementation
    */
   const verifyEmail = async (data: VerifyEmailData): Promise<VerifyEmailResponse> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Normalize email to lowercase before sending to backend
-      const normalizedData = {
-        ...data,
-        email: data.email.toLowerCase().trim()
-      };
-
-      const response = await authService.verifyEmail(normalizedData);
-      
-      if (response.success && response.data?.token && response.data?.user) {
-        const { token, user: userData } = response.data;
-        
-        // Set token in axios client and localStorage
-        setAuthToken(token);
-        
-        // Set user state
-        setUser(userData);
-        
-        // Clear pending email verification
-        setPendingEmailVerification(null);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('pendingEmailVerification');
-        }
-        
-        // Store user in localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(config.auth.userKey, JSON.stringify(userData));
-        }
-        
-        // Redirect to dashboard
-        router.push('/dashboard');
-      }
-      
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Email verification failed';
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    // Email verification feature has been disabled
+    // Users now register and login immediately
+    return {
+      success: false,
+      message: 'Email verification is currently disabled. Please use the login method directly.'
+    } as VerifyEmailResponse;
   };
 
   const value: AuthContextType = {
