@@ -14,7 +14,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { authService } from '@/lib/api/services/auth.service';
 import { profileService } from '@/lib/api/services/profile.service';
 import { setAuthToken, getAuthToken } from '@/lib/api/client';
-import { User, LoginCredentials, RegisterData, UpdateProfileData, SendOTPData, VerifyOTPData, VerifyOTPResponse } from '@/lib/api/types';
+import { User, LoginCredentials, RegisterData, UpdateProfileData, SendOTPData, VerifyOTPData, VerifyOTPResponse, VerifyEmailData, VerifyEmailResponse } from '@/lib/api/types';
 import config from '@/lib/config';
 
 interface AuthContextType {
@@ -22,11 +22,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  pendingEmailVerification: string | null; // Store email awaiting verification
   login: (credentials: LoginCredentials) => Promise<void>;
   sendOTP: (data: SendOTPData) => Promise<{ success: boolean; message: string; expiresIn?: number }>;
   verifyOTP: (data: VerifyOTPData) => Promise<VerifyOTPResponse>;
   resendOTP: (data: SendOTPData) => Promise<{ success: boolean; message: string }>;
   register: (data: RegisterData) => Promise<void>;
+  verifyEmail: (data: VerifyEmailData) => Promise<VerifyEmailResponse>;
   logout: () => void;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   clearError: () => void;
@@ -35,7 +37,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/offline', '/terms', '/privacy', '/refund', '/about'];
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify-email', '/offline', '/terms', '/privacy', '/refund', '/about'];
 
 // Route prefixes that are public (for dynamic routes)
 const PUBLIC_ROUTE_PREFIXES = ['/invite/'];
@@ -44,8 +46,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingEmailVerification, setPendingEmailVerification] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Initialize pendingEmailVerification from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('pendingEmailVerification');
+      if (stored) {
+        setPendingEmailVerification(stored);
+      }
+    }
+  }, []);
 
   // Check if current path is a public route
   const isPublicRoute = (path: string) => {
@@ -152,7 +165,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(true);
       setError(null);
       
-      const response = await authService.login(credentials);
+      // Normalize email to lowercase
+      const normalizedCredentials = {
+        ...credentials,
+        email: credentials.email.toLowerCase().trim()
+      };
+
+      const response = await authService.login(normalizedCredentials);
       
       if (response.success && response.data) {
         const { token, user: userData } = response.data;
@@ -264,9 +283,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(true);
       setError(null);
       
-      const response = await authService.register(data);
+      // Normalize email to lowercase before sending to backend
+      const normalizedData = {
+        ...data,
+        email: data.email.toLowerCase().trim()
+      };
+
+      const response = await authService.register(normalizedData);
       
-      if (response.success && response.data) {
+      // Check if email verification is required
+      if (response.data?.requiresEmailVerification) {
+        // Store email for verification page (persists across reloads)
+        const email = normalizedData.email;
+        setPendingEmailVerification(email);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pendingEmailVerification', email);
+        }
+        setError(null);
+        // Navigate to email verification page
+        router.push('/verify-email');
+        return;
+      }
+      
+      // Normal registration with immediate login
+      if (response.success && response.data?.token && response.data?.user) {
         const { token, user: userData } = response.data;
         
         // Set token in axios client and localStorage
@@ -340,16 +380,68 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
   };
 
+  /**
+   * Verify email with OTP
+   */
+  const verifyEmail = async (data: VerifyEmailData): Promise<VerifyEmailResponse> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Normalize email to lowercase before sending to backend
+      const normalizedData = {
+        ...data,
+        email: data.email.toLowerCase().trim()
+      };
+
+      const response = await authService.verifyEmail(normalizedData);
+      
+      if (response.success && response.data?.token && response.data?.user) {
+        const { token, user: userData } = response.data;
+        
+        // Set token in axios client and localStorage
+        setAuthToken(token);
+        
+        // Set user state
+        setUser(userData);
+        
+        // Clear pending email verification
+        setPendingEmailVerification(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingEmailVerification');
+        }
+        
+        // Store user in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(config.auth.userKey, JSON.stringify(userData));
+        }
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      }
+      
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Email verification failed';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isLoading,
     error,
+    pendingEmailVerification,
     login,
     sendOTP,
     verifyOTP,
     resendOTP,
     register,
+    verifyEmail,
     logout,
     updateProfile,
     clearError,

@@ -14,6 +14,8 @@ import {
   VerifyOTPData,
   SendOTPResponse,
   VerifyOTPResponse,
+  VerifyEmailData,
+  VerifyEmailResponse,
 } from '../types';
 
 class AuthService {
@@ -73,6 +75,18 @@ class AuthService {
   async resendOTP(data: SendOTPData): Promise<SendOTPResponse> {
     try {
       const response = await apiClient.post<SendOTPResponse>('/auth/otp/resend', data);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Verify email with OTP
+   */
+  async verifyEmail(data: VerifyEmailData): Promise<VerifyEmailResponse> {
+    try {
+      const response = await apiClient.post<VerifyEmailResponse>('/auth/verify-email', data);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

@@ -37,7 +37,24 @@ export interface User {
 
 export interface AuthResponse {
   success: boolean;
-  data: {
+  message?: string;
+  data?: {
+    token?: string;
+    user?: User;
+    requiresEmailVerification?: boolean;
+    emailVerificationMessage?: string;
+  };
+}
+
+export interface VerifyEmailData {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message?: string;
+  data?: {
     token: string;
     user: User;
   };
