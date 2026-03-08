@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import GoogleSignButton from '@/components/GoogleSignButton';
 
 export default function RegisterPage() {
   const { register, error, isLoading, clearError } = useAuth();
@@ -201,7 +202,18 @@ export default function RegisterPage() {
                 'Create Account'
               )}
             </Button>
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-950 text-gray-500 dark:text-gray-400">Or</span>
+              </div>
+            </div>
 
+            {/* Google Sign-up */}
+            <GoogleSignButton mode="signup" businessName={formData.businessName} />
             <div className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from '@/components/ui/toaster';
 import AppLayout from '@/components/layout/AppLayout';
 import { AppProvider } from '@/contexts/AppContext';
@@ -45,6 +46,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+  // Log warning if Google Client ID is not configured
+  if (!googleClientId && typeof window !== 'undefined') {
+    console.warn('⚠️ Google OAuth not configured. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to .env.local for Google Sign-in/Sign-up.');
+  }
+
+  const appContent = (
+    <ServiceWorkerRegistration />
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -66,28 +78,57 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body className="font-body antialiased">
-        <ServiceWorkerRegistration />
-        <ChunkErrorHandler />
-        <ErrorBoundary>
-          <AuthProvider>
-            <PlanLimitProvider>
-              <AppProvider>
-                <BranchProvider>
-                  <NotificationProvider>
-                    <RouteChangeListener />
-                    <AppLayout>
-                      {children}
-                    </AppLayout>
-                    <OnlineStatusIndicator />
-                    <InstallPrompt />
-                    <IOSInstallInstructions />
-                    <Toaster />
-                  </NotificationProvider>
-                </BranchProvider>
-              </AppProvider>
-            </PlanLimitProvider>
-          </AuthProvider>
-        </ErrorBoundary>
+        {googleClientId ? (
+          <GoogleOAuthProvider clientId={googleClientId}>
+            <ServiceWorkerRegistration />
+            <ChunkErrorHandler />
+            <ErrorBoundary>
+              <AuthProvider>
+                <PlanLimitProvider>
+                  <AppProvider>
+                    <BranchProvider>
+                      <NotificationProvider>
+                        <RouteChangeListener />
+                        <AppLayout>
+                          {children}
+                        </AppLayout>
+                        <OnlineStatusIndicator />
+                        <InstallPrompt />
+                        <IOSInstallInstructions />
+                        <Toaster />
+                    </NotificationProvider>
+                  </BranchProvider>
+                </AppProvider>
+              </PlanLimitProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+          </GoogleOAuthProvider>
+        ) : (
+          <>
+            <ServiceWorkerRegistration />
+            <ChunkErrorHandler />
+            <ErrorBoundary>
+              <AuthProvider>
+                <PlanLimitProvider>
+                  <AppProvider>
+                    <BranchProvider>
+                      <NotificationProvider>
+                        <RouteChangeListener />
+                        <AppLayout>
+                          {children}
+                        </AppLayout>
+                        <OnlineStatusIndicator />
+                        <InstallPrompt />
+                        <IOSInstallInstructions />
+                        <Toaster />
+                    </NotificationProvider>
+                  </BranchProvider>
+                </AppProvider>
+              </PlanLimitProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+          </>
+        )}
       </body>
     </html>
   );
