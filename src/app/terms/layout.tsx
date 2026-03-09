@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     title: 'Terms of Service',
     description: 'HisaabApp terms of service',
     type: 'website',
-    url: 'https://hisaabapp.vercel.app/terms',
+    url: 'https://hisaabapp.in/terms',
   },
   robots: {
     index: false,

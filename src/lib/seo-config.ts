@@ -3,13 +3,13 @@
  */
 
 export const seoConfig = {
-  baseUrl: 'https://hisaabapp.vercel.app',
+  baseUrl: 'https://hisaabapp.in',
   siteName: 'HisaabApp',
   brandName: 'HisaabApp',
   
   defaults: {
     title: 'HisaabApp - Business Billing & Customer Management',
-    description: 'Complete billing and customer management solution for dairy vendors, tuition centers & subscription services. Track payments, send reminders via SMS & WhatsApp. 14-day free trial.',
+    description: 'Smart billing solution for dairy vendors, tuition centers & subscription services. Manage customers, send SMS & WhatsApp reminders.',
     keywords: [
       'business management',
       'billing software',

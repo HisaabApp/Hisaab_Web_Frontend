@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     title: 'About HisaabApp',
     description: 'Learn about our mission to simplify business management for SMBs',
     type: 'website',
-    url: 'https://hisaabapp.vercel.app/about',
+    url: 'https://hisaabapp.in/about',
   },
 }
 

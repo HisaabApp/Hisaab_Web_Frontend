@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     title: 'HisaabApp - Complete Business Billing Solution',
     description: 'Easy billing & customer management for any business. 14-day free trial, no credit card required.',
     type: 'website',
-    url: 'https://hisaabapp.vercel.app',
+    url: 'https://hisaabapp.in',
     images: [
       {
-        url: 'https://hisaabapp.vercel.app/icons/icon-512x512.png',
+        url: 'https://hisaabapp.in/icons/icon-512x512.png',
         width: 512,
         height: 512,
       }
@@ -34,6 +34,6 @@ export const metadata: Metadata = {
     description: 'Easy billing & customer management for any business. 14-day free trial.',
   },
   alternates: {
-    canonical: 'https://hisaabapp.vercel.app'
+    canonical: 'https://hisaabapp.in'
   }
 }

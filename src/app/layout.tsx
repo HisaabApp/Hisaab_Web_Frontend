@@ -17,7 +17,8 @@ import { InstallPrompt, IOSInstallInstructions } from '@/components/InstallPromp
 
 export const metadata: Metadata = {
   title: 'HisaabApp - Business Billing & Customer Management',
-  description: 'Complete billing and customer management solution for dairy vendors, tuition centers & subscription services. Track payments, send reminders via SMS & WhatsApp. 14-day free trial.',
+  description: 'Smart billing solution for dairy vendors, tuition centers & subscription services. Manage customers, send SMS & WhatsApp reminders.',
+
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -33,13 +34,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://hisaabapp.vercel.app',
+    url: 'https://hisaabapp.in',
     title: 'HisaabApp - Business Billing & Customer Management',
     description: 'Complete billing and customer management solution. Track payments, send automated reminders via SMS & WhatsApp.',
     siteName: 'HisaabApp',
     images: [
       {
-        url: 'https://hisaabapp.vercel.app/icons/icon-512x512.png',
+        url: 'https://hisaabapp.in/icons/icon-512x512.png',
         width: 512,
         height: 512,
         alt: 'HisaabApp Logo',
@@ -50,10 +51,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'HisaabApp - Business Billing & Customer Management',
     description: 'Complete billing and customer management solution',
-    images: ['https://hisaabapp.vercel.app/icons/icon-512x512.png'],
+    images: ['https://hisaabapp.in/icons/icon-512x512.png'],
   },
   alternates: {
-    canonical: 'https://hisaabapp.vercel.app',
+    canonical: 'https://hisaabapp.in',
   },
 };
 

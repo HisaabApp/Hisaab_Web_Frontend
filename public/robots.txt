@@ -24,6 +24,9 @@ Disallow: /node_modules/
 # Crawl delay
 Crawl-delay: 1
 
+# Point to sitemap
+Sitemap: https://hisaabapp.in/sitemap.xml
+
 # Sitemap location
 Sitemap: https://hisaabapp.vercel.app/sitemap.xml
 

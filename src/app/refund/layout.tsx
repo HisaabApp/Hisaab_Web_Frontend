@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     title: 'Refund Policy',
     description: 'HisaabApp refund policy and money-back guarantee',
     type: 'website',
-    url: 'https://hisaabapp.vercel.app/refund',
+    url: 'https://hisaabapp.in/refund',
   },
   robots: {
     index: false,

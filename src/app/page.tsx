@@ -35,7 +35,7 @@ export default function LandingPage() {
       "@type": "SoftwareApplication",
       "name": "HisaabApp",
       "description": "Complete business billing and customer management solution",
-      "url": "https://hisaabapp.vercel.app",
+      "url": "https://hisaabapp.in",
       "applicationCategory": "BusinessApplication",
       "offers": {
         "@type": "Offer",
@@ -51,7 +51,7 @@ export default function LandingPage() {
       "author": {
         "@type": "Organization",
         "name": "HisaabApp",
-        "url": "https://hisaabapp.vercel.app"
+        "url": "https://hisaabapp.in"
       }
     };
 

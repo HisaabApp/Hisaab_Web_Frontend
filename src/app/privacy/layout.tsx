@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     title: 'Privacy Policy',
     description: 'HisaabApp privacy policy and data protection',
     type: 'website',
-    url: 'https://hisaabapp.vercel.app/privacy',
+    url: 'https://hisaabapp.in/privacy',
   },
   robots: {
     index: false,
