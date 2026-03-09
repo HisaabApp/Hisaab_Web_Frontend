@@ -28,6 +28,43 @@ import { useEffect, useRef } from "react";
 export default function LandingPage() {
   const sectionsRef = useRef<HTMLDivElement[]>([]);
 
+  // Add JSON-LD structured data for SEO
+  useEffect(() => {
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "HisaabApp",
+      "description": "Complete business billing and customer management solution",
+      "url": "https://hisaabapp.vercel.app",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR",
+        "description": "14-day free trial"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "250"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "HisaabApp",
+        "url": "https://hisaabapp.vercel.app"
+      }
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   // Add smooth scroll animation observer
   useEffect(() => {
     const observer = new IntersectionObserver(

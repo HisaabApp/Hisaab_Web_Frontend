@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Eye, Edit, PlusCircle, Search, Download, Send, Trash2,
   Clock, AlertCircle, Phone, MapPin, Users, IndianRupee,
-  MessageSquare, MoreVertical, TrendingUp, Crown, Zap, Star
+  MessageSquare, MoreVertical, TrendingUp, Crown, Zap, Star,
+  Filter, ChevronRight, SlidersHorizontal
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { planService, type PlanStatus } from '@/lib/api/services/plan.service';
@@ -97,6 +98,7 @@ export default function CustomersPage() {
   const [customerToDelete, setCustomerToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -306,7 +308,8 @@ export default function CustomersPage() {
     <TooltipProvider>
       <div className="space-y-6">
         <PageHeader title="Customers" description="Manage your customer records.">
-          <div className="flex flex-wrap gap-2">
+          {/* Desktop buttons */}
+          <div className="hidden md:flex flex-wrap gap-2">
             {!selectionMode && !deleteMode ? (
               <>
                 <Button onClick={handleAddCustomer}><PlusCircle className="mr-2 h-4 w-4" /> Add</Button>
@@ -331,11 +334,71 @@ export default function CustomersPage() {
               </>
             )}
           </div>
+          {/* Mobile buttons: Add + overflow menu */}
+          <div className="flex md:hidden gap-2">
+            {!selectionMode && !deleteMode ? (
+              <>
+                <Button onClick={handleAddCustomer} size="sm"><PlusCircle className="mr-1 h-4 w-4" /> Add</Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm"><MoreVertical className="h-4 w-4" /></Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleDownloadAllCustomers}>
+                      <Download className="h-4 w-4 mr-2" /> Export
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={toggleSelectionMode}>
+                      <Send className="h-4 w-4 mr-2" /> Bulk Send
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600" onClick={toggleDeleteMode}>
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete Mode
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : selectionMode ? (
+              <>
+                <Button size="sm" onClick={() => handleBulkSend(false)} disabled={selectedCustomers.size === 0 || sendingBulk}>
+                  {sendingBulk ? 'Sending...' : `Send (${selectedCustomers.size})`}
+                </Button>
+                <Button size="sm" onClick={toggleSelectionMode} variant="ghost">Cancel</Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" onClick={() => setShowDeleteDialog(true)} disabled={selectedCustomers.size === 0 || deleting} variant="destructive">
+                  Delete {selectedCustomers.size}
+                </Button>
+                <Button size="sm" onClick={toggleDeleteMode} variant="ghost">Cancel</Button>
+              </>
+            )}
+          </div>
         </PageHeader>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {/* Mobile stats compact strip */}
+        <div className="flex md:hidden gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <div className="flex-shrink-0 bg-card border rounded-lg px-3 py-2 flex items-center gap-2 min-w-[90px]">
+            <div className="h-7 w-7 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center"><Users className="h-3.5 w-3.5 text-blue-600" /></div>
+            <div><p className="text-base font-bold leading-none">{customers.length}</p><p className="text-[10px] text-muted-foreground mt-0.5">Total</p></div>
+          </div>
+          <div className="flex-shrink-0 bg-card border rounded-lg px-3 py-2 flex items-center gap-2 min-w-[110px]">
+            <div className="h-7 w-7 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center"><IndianRupee className="h-3.5 w-3.5 text-orange-600" /></div>
+            <div><p className="text-base font-bold leading-none text-orange-600">₹{stats.totalOutstanding > 999 ? `${(stats.totalOutstanding/1000).toFixed(1)}k` : stats.totalOutstanding.toFixed(0)}</p><p className="text-[10px] text-muted-foreground mt-0.5">Due</p></div>
+          </div>
+          <div className="flex-shrink-0 bg-card border rounded-lg px-3 py-2 flex items-center gap-2 min-w-[90px]">
+            <div className="h-7 w-7 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center"><AlertCircle className="h-3.5 w-3.5 text-red-600" /></div>
+            <div><p className="text-base font-bold leading-none text-red-600">{stats.overdueCount}</p><p className="text-[10px] text-muted-foreground mt-0.5">Follow-up</p></div>
+          </div>
+          <div className="flex-shrink-0 bg-card border rounded-lg px-3 py-2 flex items-center gap-2 min-w-[90px]">
+            <div className="h-7 w-7 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center"><TrendingUp className="h-3.5 w-3.5 text-green-600" /></div>
+            <div><p className="text-base font-bold leading-none text-green-600">{stats.newCount}</p><p className="text-[10px] text-muted-foreground mt-0.5">New</p></div>
+          </div>
+        </div>
+
+        {/* Desktop stats grid */}
+        <div className="hidden md:grid grid-cols-5 gap-4">
           {/* Plan Capacity Card */}
-          <Card className={`p-4 col-span-2 md:col-span-1 ${
+          <Card className={`p-4 col-span-1 ${
             planStatus?.usage?.customers?.percentage !== undefined && planStatus.usage.customers.percentage >= 90 
               ? 'border-red-300 bg-red-50/50 dark:bg-red-950/20' 
               : planStatus?.usage?.customers?.percentage !== undefined && planStatus.usage.customers.percentage >= 75 
@@ -457,7 +520,43 @@ export default function CustomersPage() {
           </Alert>
         )}
 
-        <Card><CardContent className="p-4">
+        {/* Mobile search + filter */}
+        <div className="flex md:hidden gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search customers..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 h-10" autoComplete="off" />
+          </div>
+          <Button variant={showMobileFilters ? 'default' : 'outline'} size="icon" className="h-10 w-10 shrink-0" onClick={() => setShowMobileFilters(v => !v)}>
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+        {showMobileFilters && (
+          <div className="flex md:hidden gap-2">
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+              <SelectTrigger className="flex-1 h-9 text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+              <SelectTrigger className="flex-1 h-9 text-sm"><SelectValue placeholder="Sort" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                <SelectItem value="balance-desc">Highest Due</SelectItem>
+                <SelectItem value="balance-asc">Lowest Due</SelectItem>
+                <SelectItem value="recent">Most Recent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Desktop search + filter */}
+        <Card className="hidden md:block"><CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -487,7 +586,44 @@ export default function CustomersPage() {
         </CardContent></Card>
 
         {filteredCustomers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <>
+          {/* Mobile compact list */}
+          <div className="flex md:hidden flex-col divide-y border rounded-lg overflow-hidden bg-card">
+            {filteredCustomers.map((customer) => (
+              <div key={customer.id}
+                className={`flex items-center gap-3 px-4 py-3 active:bg-muted/50 cursor-pointer transition-colors ${
+                  selectedCustomers.has(customer.id) ? (deleteMode ? 'bg-red-50 dark:bg-red-950/30' : 'bg-primary/5') : ''
+                }`}
+                onClick={() => (deleteMode || selectionMode) ? toggleCustomerSelection(customer.id) : router.push(`/customers/${customer.id}`)}
+              >
+                {(selectionMode || deleteMode) && (
+                  <Checkbox checked={selectedCustomers.has(customer.id)} onClick={(e) => e.stopPropagation()}
+                    className={deleteMode ? 'border-red-500 data-[state=checked]:bg-red-500' : ''} />
+                )}
+                <Avatar className={`h-10 w-10 shrink-0 ${getAvatarColor(customer.id)}`}>
+                  <AvatarFallback className="text-white text-sm font-semibold">{getInitials(customer.name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium text-sm truncate">{customer.name}</p>
+                    {customer.status === 'new' && <span className="text-[10px] bg-blue-100 text-blue-700 rounded px-1 py-0.5 font-medium shrink-0">New</span>}
+                    {customer.status === 'overdue' && <span className="text-[10px] bg-red-100 text-red-700 rounded px-1 py-0.5 font-medium shrink-0">Overdue</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{customer.phone || 'No phone'}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-sm font-semibold ${customer.outstanding > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                    ₹{customer.outstanding > 999 ? `${(customer.outstanding/1000).toFixed(1)}k` : customer.outstanding.toFixed(0)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">{formatRelativeTime(customer.lastActivity)}</p>
+                </div>
+                {!selectionMode && !deleteMode && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop cards grid */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCustomers.map((customer, index) => (
               <Card key={customer.id}
                 className={`group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer animate-in fade-in slide-in-from-bottom-4 ${
@@ -559,6 +695,7 @@ export default function CustomersPage() {
               </Card>
             ))}
           </div>
+          </>
         ) : (
           <Card className="p-12"><div className="text-center">
             <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />

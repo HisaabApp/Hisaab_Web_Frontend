@@ -16,8 +16,8 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistratio
 import { InstallPrompt, IOSInstallInstructions } from '@/components/InstallPrompt';
 
 export const metadata: Metadata = {
-  title: 'HisaabApp',
-  description: 'Manage your customers and their monthly expenses effortlessly. Simple billing & payment tracking for any business.',
+  title: 'HisaabApp - Business Billing & Customer Management',
+  description: 'Complete billing and customer management solution for dairy vendors, tuition centers & subscription services. Track payments, send reminders via SMS & WhatsApp. 14-day free trial.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -28,16 +28,41 @@ export const metadata: Metadata = {
     telephone: false,
   },
   applicationName: 'HisaabApp',
-  keywords: ['business', 'expense', 'tracking', 'billing', 'payment', 'dairy'],
+  keywords: ['business', 'expense', 'tracking', 'billing', 'payment', 'dairy', 'invoicing', 'customer management', 'SMS reminders', 'WhatsApp'],
   authors: [{ name: 'HisaabApp Team' }],
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://hisaabapp.vercel.app',
+    title: 'HisaabApp - Business Billing & Customer Management',
+    description: 'Complete billing and customer management solution. Track payments, send automated reminders via SMS & WhatsApp.',
+    siteName: 'HisaabApp',
+    images: [
+      {
+        url: 'https://hisaabapp.vercel.app/icons/icon-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'HisaabApp Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HisaabApp - Business Billing & Customer Management',
+    description: 'Complete billing and customer management solution',
+    images: ['https://hisaabapp.vercel.app/icons/icon-512x512.png'],
+  },
+  alternates: {
+    canonical: 'https://hisaabapp.vercel.app',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: '#A7D1AB',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: 'cover',
 };
 

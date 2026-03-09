@@ -1,0 +1,33 @@
+# HisaabApp - Robots.txt for Search Engines
+# Allow all crawlers to index the site
+
+User-agent: *
+Allow: /
+
+# Disallow private/admin areas
+Disallow: /dashboard
+Disallow: /customers
+Disallow: /expenses
+Disallow: /payments
+Disallow: /settings
+Disallow: /reports
+Disallow: /analytics
+Disallow: /subscription
+Disallow: /login
+Disallow: /register
+Disallow: /verify-email
+Disallow: /offline
+Disallow: /api/
+Disallow: /.next/
+Disallow: /node_modules/
+
+# Crawl delay
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://hisaabapp.vercel.app/sitemap.xml
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
