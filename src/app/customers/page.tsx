@@ -324,79 +324,86 @@ export default function CustomersPage() {
     }
   };
 
-  if (!mounted || isLoadingCustomers) {
-    return <div className="space-y-6"><PageHeader title="Customers" description="Manage customers." /><CustomersSkeleton /></div>;
+  // Show buttons even during loading to prevent layout shift
+  const renderActionButtons = () => (
+    <>
+      {/* Desktop buttons */}
+      <div className="hidden md:flex flex-wrap gap-2">
+        {!selectionMode && !deleteMode ? (
+          <>
+            <Button onClick={handleAddCustomer} disabled={isLoadingCustomers}><PlusCircle className="mr-2 h-4 w-4" /> Add</Button>
+            <CustomerImport onImportComplete={refreshData} />
+            <Button onClick={handleDownloadAllCustomers} variant="outline" disabled={isLoadingCustomers}><Download className="mr-2 h-4 w-4" /> Export</Button>
+            <Button onClick={toggleSelectionMode} variant="outline" disabled={isLoadingCustomers}><Send className="mr-2 h-4 w-4" /> Bulk Send</Button>
+            <Button onClick={toggleDeleteMode} variant="outline" className="text-red-600 hover:bg-red-50" disabled={isLoadingCustomers}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+          </>
+        ) : selectionMode ? (
+          <>
+            <Button onClick={() => handleBulkSend(false)} disabled={selectedCustomers.size === 0 || sendingBulk}>
+              <Send className="mr-2 h-4 w-4" /> {sendingBulk ? 'Sending...' : `Send to ${selectedCustomers.size}`}
+            </Button>
+            <Button onClick={toggleSelectionMode} variant="ghost">Cancel</Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={() => setShowDeleteDialog(true)} disabled={selectedCustomers.size === 0 || deleting} variant="destructive">
+              <Trash2 className="mr-2 h-4 w-4" /> Delete {selectedCustomers.size}
+            </Button>
+            <Button onClick={toggleDeleteMode} variant="ghost">Cancel</Button>
+          </>
+        )}
+      </div>
+      {/* Mobile buttons: Add + overflow menu */}
+      <div className="flex md:hidden gap-2">
+        {!selectionMode && !deleteMode ? (
+          <>
+            <Button onClick={handleAddCustomer} size="sm" disabled={isLoadingCustomers}><PlusCircle className="mr-1 h-4 w-4" /> Add</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isLoadingCustomers}><MoreVertical className="h-4 w-4" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadAllCustomers}>
+                  <Download className="h-4 w-4 mr-2" /> Export
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleSelectionMode}>
+                  <Send className="h-4 w-4 mr-2" /> Bulk Send
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600" onClick={toggleDeleteMode}>
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete Mode
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : selectionMode ? (
+          <>
+            <Button size="sm" onClick={() => handleBulkSend(false)} disabled={selectedCustomers.size === 0 || sendingBulk}>
+              {sendingBulk ? 'Sending...' : `Send (${selectedCustomers.size})`}
+            </Button>
+            <Button size="sm" onClick={toggleSelectionMode} variant="ghost">Cancel</Button>
+          </>
+        ) : (
+          <>
+            <Button size="sm" onClick={() => setShowDeleteDialog(true)} disabled={selectedCustomers.size === 0 || deleting} variant="destructive">
+              Delete {selectedCustomers.size}
+            </Button>
+            <Button size="sm" onClick={toggleDeleteMode} variant="ghost">Cancel</Button>
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  if (!mounted) {
+    return <div className="space-y-6"><PageHeader title="Customers" description="Manage your customer records.">{renderActionButtons()}</PageHeader><CustomersSkeleton /></div>;
   }
 
   return (
     <TooltipProvider>
       <div className="space-y-6">
         <PageHeader title="Customers" description="Manage your customer records.">
-          {/* Desktop buttons */}
-          <div className="hidden md:flex flex-wrap gap-2">
-            {!selectionMode && !deleteMode ? (
-              <>
-                <Button onClick={handleAddCustomer}><PlusCircle className="mr-2 h-4 w-4" /> Add</Button>
-                <CustomerImport onImportComplete={refreshData} />
-                <Button onClick={handleDownloadAllCustomers} variant="outline"><Download className="mr-2 h-4 w-4" /> Export</Button>
-                <Button onClick={toggleSelectionMode} variant="outline"><Send className="mr-2 h-4 w-4" /> Bulk Send</Button>
-                <Button onClick={toggleDeleteMode} variant="outline" className="text-red-600 hover:bg-red-50"><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
-              </>
-            ) : selectionMode ? (
-              <>
-                <Button onClick={() => handleBulkSend(false)} disabled={selectedCustomers.size === 0 || sendingBulk}>
-                  <Send className="mr-2 h-4 w-4" /> {sendingBulk ? 'Sending...' : `Send to ${selectedCustomers.size}`}
-                </Button>
-                <Button onClick={toggleSelectionMode} variant="ghost">Cancel</Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={() => setShowDeleteDialog(true)} disabled={selectedCustomers.size === 0 || deleting} variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete {selectedCustomers.size}
-                </Button>
-                <Button onClick={toggleDeleteMode} variant="ghost">Cancel</Button>
-              </>
-            )}
-          </div>
-          {/* Mobile buttons: Add + overflow menu */}
-          <div className="flex md:hidden gap-2">
-            {!selectionMode && !deleteMode ? (
-              <>
-                <Button onClick={handleAddCustomer} size="sm"><PlusCircle className="mr-1 h-4 w-4" /> Add</Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm"><MoreVertical className="h-4 w-4" /></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleDownloadAllCustomers}>
-                      <Download className="h-4 w-4 mr-2" /> Export
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={toggleSelectionMode}>
-                      <Send className="h-4 w-4 mr-2" /> Bulk Send
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600" onClick={toggleDeleteMode}>
-                      <Trash2 className="h-4 w-4 mr-2" /> Delete Mode
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : selectionMode ? (
-              <>
-                <Button size="sm" onClick={() => handleBulkSend(false)} disabled={selectedCustomers.size === 0 || sendingBulk}>
-                  {sendingBulk ? 'Sending...' : `Send (${selectedCustomers.size})`}
-                </Button>
-                <Button size="sm" onClick={toggleSelectionMode} variant="ghost">Cancel</Button>
-              </>
-            ) : (
-              <>
-                <Button size="sm" onClick={() => setShowDeleteDialog(true)} disabled={selectedCustomers.size === 0 || deleting} variant="destructive">
-                  Delete {selectedCustomers.size}
-                </Button>
-                <Button size="sm" onClick={toggleDeleteMode} variant="ghost">Cancel</Button>
-              </>
-            )}
-          </div>
+          {renderActionButtons()}
         </PageHeader>
 
         {/* Mobile stats compact strip */}
