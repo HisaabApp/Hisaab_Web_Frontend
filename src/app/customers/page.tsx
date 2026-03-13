@@ -187,18 +187,25 @@ export default function CustomersPage() {
     }
   };
 
-  const handleAddCustomer = async () => { 
-    // Check plan limits before opening form
-    const limitCheck = await canAddCustomer();
-    if (!limitCheck.allowed) {
-      showUpgradeModal({ 
-        limitType: 'customers',
-        message: limitCheck.message 
-      });
-      return;
-    }
+  const handleAddCustomer = () => { 
+    // Open sidebar immediately for best UX
     setEditingCustomer(null); 
-    setIsSheetOpen(true); 
+    setIsSheetOpen(true);
+    
+    // Check plan limits in the background without blocking
+    canAddCustomer().then(limitCheck => {
+      if (!limitCheck.allowed) {
+        // Close sidebar and show upgrade modal if limit reached
+        setIsSheetOpen(false);
+        showUpgradeModal({ 
+          limitType: 'customers',
+          message: limitCheck.message 
+        });
+      }
+    }).catch(error => {
+      console.error('Error checking plan limit:', error);
+      // Allow to proceed if check fails - fail gracefully
+    });
   };
   const handleEditCustomer = (customerId: string, e?: React.MouseEvent) => {
     e?.stopPropagation(); setEditingCustomer(customerId); setIsSheetOpen(true);
