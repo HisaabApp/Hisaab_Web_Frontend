@@ -99,21 +99,38 @@ export default function CustomersPage() {
   const [deleting, setDeleting] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
   // Fetch plan status for capacity indicator
+  const fetchPlanStatus = useCallback(async () => {
+    try {
+      setIsRefreshingPlan(true);
+      const status = await planService.getStatus();
+      setPlanStatus(status);
+    } catch (err) {
+      console.error('Failed to fetch plan status:', err);
+    } finally {
+      setIsRefreshingPlan(false);
+    }
+  }, []);
+
+  // Initial fetch on mount
   useEffect(() => {
-    const fetchPlanStatus = async () => {
-      try {
-        const status = await planService.getStatus();
-        setPlanStatus(status);
-      } catch (err) {
-        console.error('Failed to fetch plan status:', err);
-      }
-    };
     fetchPlanStatus();
-  }, [customers.length]); // Refresh when customers change
+  }, [fetchPlanStatus]);
+
+  // Refetch plan status when customers change (with debounce to avoid stale data)
+  useEffect(() => {
+    if (mounted && customers.length > 0) {
+      // Add 500ms delay to ensure backend has processed the change
+      const timeout = setTimeout(() => {
+        fetchPlanStatus();
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [customers.length, fetchPlanStatus, mounted]);
 
   // Memoize customer calculations separately for better performance
   const customersWithDetails = useMemo(() => {
@@ -429,6 +446,14 @@ export default function CustomersPage() {
                     {planStatus?.plan || 'FREE'}
                   </Badge>
                 </div>
+                <button 
+                  onClick={fetchPlanStatus}
+                  disabled={isRefreshingPlan}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
+                  title="Refresh capacity usage"
+                >
+                  {isRefreshingPlan ? '↻' : '↻'}
+                </button>
               </div>
               
               {planStatus?.usage?.customers ? (
