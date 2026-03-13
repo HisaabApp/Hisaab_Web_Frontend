@@ -29,7 +29,7 @@ interface AuthContextType {
   resendOTP: (data: SendOTPData) => Promise<{ success: boolean; message: string }>;
   register: (data: RegisterData) => Promise<void>;
   verifyEmail: (data: VerifyEmailData) => Promise<VerifyEmailResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   clearError: () => void;
 }
@@ -335,15 +335,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /**
    * Logout user
    */
-  const logout = () => {
+  const logout = async () => {
     // Clear token
     setAuthToken(null);
     
     // Clear user state
     setUser(null);
     
-    // Redirect to login
-    router.push('/login');
+    // Redirect to login and wait for navigation
+    await router.push('/login');
   };
 
   /**

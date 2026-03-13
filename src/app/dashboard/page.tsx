@@ -85,13 +85,18 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   const { customers, expenses, isLoadingCustomers, isLoadingExpenses } = useAppContext();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prevent rendering if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Memoize date calculations to avoid recreating Date objects
   const { currentMonth, currentYear, lastMonth, lastMonthYear, lastMonthDate, greeting } = useMemo(() => {

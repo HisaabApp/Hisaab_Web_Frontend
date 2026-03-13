@@ -135,7 +135,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
+              <DropdownMenuItem onClick={() => logout()} className="text-red-600 focus:text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign Out</span>
               </DropdownMenuItem>
@@ -167,15 +167,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </DropdownMenu>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
+      <SidebarInset className="flex flex-col">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4 will-change-none">
           <SidebarTrigger className="md:hidden" />
           <div className="flex-1" />
           <NotificationBell />
         </header>
         {/* Subscription Warning Banner */}
         <SubscriptionBanner className="mx-4 sm:mx-6 mt-2" />
-        <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8 pb-20 md:pb-0">
+        <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8 pb-20 md:pb-0 will-change-contents">
           <PageTransition>
             {children}
           </PageTransition>
