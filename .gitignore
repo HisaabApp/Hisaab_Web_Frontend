@@ -20,6 +20,18 @@
 # production
 /build
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Sensitive files (credentials, secrets)
+important data.txt
+credentials.txt
+secrets.txt
+*-credentials.txt
+*-secrets.txt
+
 # misc
 .DS_Store
 *.pem
