@@ -14,6 +14,7 @@ import { ChunkErrorHandler } from '@/components/ChunkErrorHandler';
 import RouteChangeListener from '@/components/RouteChangeListener';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import { InstallPrompt, IOSInstallInstructions } from '@/components/InstallPrompt';
+import { SuppressGoogleWarning } from '@/components/SuppressGoogleWarning';
 
 export const metadata: Metadata = {
   title: 'HisaabApp - Business Billing & Customer Management',
@@ -107,6 +108,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         {googleClientId ? (
           <GoogleOAuthProvider clientId={googleClientId}>
+            <SuppressGoogleWarning />
             <ServiceWorkerRegistration />
             <ChunkErrorHandler />
             <ErrorBoundary>
