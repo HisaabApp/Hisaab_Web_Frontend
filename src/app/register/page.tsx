@@ -5,17 +5,23 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import GoogleSignButton from '@/components/GoogleSignButton';
+import { warmupService } from '@/lib/api/services/warmup.service';
 
 export default function RegisterPage() {
   // Only Google OAuth is enabled (no email/password due to SMTP limitations on Render)
   const [formData, setFormData] = useState({
     businessName: '',
   });
+
+  // Keep backend warm to prevent Render free-tier sleep
+  useEffect(() => {
+    warmupService.keepBackendWarm(); // Immediate warmup on page load
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">

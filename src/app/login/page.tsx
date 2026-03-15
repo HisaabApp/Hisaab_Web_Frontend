@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { warmupService } from '@/lib/api/services/warmup.service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -16,6 +17,11 @@ import GoogleSignButton from '@/components/GoogleSignButton';
 
 export default function LoginPage() {
   // Only Google OAuth is enabled (no email/password or phone OTP due to SMTP limitations on Render)
+  
+  // Keep backend warm to prevent Render free-tier sleep
+  useEffect(() => {
+    warmupService.keepBackendWarm(); // Immediate warmup on page load
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-3 sm:p-4">

@@ -24,9 +24,25 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { warmupService } from "@/lib/api/services/warmup.service";
 
 export default function LandingPage() {
   const sectionsRef = useRef<HTMLDivElement[]>([]);
+  const keepaliveIntervalRef = useRef<number | null>(null);
+
+  // Keep backend warm on landing page to prevent Render free-tier sleep
+  useEffect(() => {
+    warmupService.keepBackendWarm(); // Immediate warmup on page load
+    
+    // Start periodic keepalive every 4 minutes
+    keepaliveIntervalRef.current = warmupService.startBackendKeepalive(4 * 60 * 1000) as any;
+
+    return () => {
+      if (keepaliveIntervalRef.current) {
+        warmupService.stopBackendKeepalive(keepaliveIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Add JSON-LD structured data for SEO
   useEffect(() => {

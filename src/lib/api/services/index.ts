@@ -11,6 +11,7 @@ export { profileService } from './profile.service';
 export { analyticsService } from './analytics.service';
 export { planService } from './plan.service';
 export { subscriptionService } from './subscription.service';
+export { warmupService } from './warmup.service';
 
 export * from './auth.service';
 export * from './customer.service';
@@ -20,3 +21,4 @@ export * from './profile.service';
 export * from './analytics.service';
 export * from './plan.service';
 export * from './subscription.service';
+export * from './warmup.service';
