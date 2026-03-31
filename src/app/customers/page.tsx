@@ -110,8 +110,11 @@ export default function CustomersPage() {
       setIsRefreshingPlan(true);
       const status = await planService.getStatus();
       setPlanStatus(status);
-    } catch (err) {
-      console.error('Failed to fetch plan status:', err);
+    } catch (err: any) {
+      // 401 means user is not authenticated (e.g. just logged out) — ignore silently
+      if (err?.response?.status !== 401) {
+        console.error('Failed to fetch plan status:', err);
+      }
     } finally {
       setIsRefreshingPlan(false);
     }

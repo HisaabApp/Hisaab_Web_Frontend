@@ -29,8 +29,11 @@ export const PlanUsageWidget: React.FC = () => {
     try {
       const data = await planService.getStatus();
       setStatus(data);
-    } catch (err) {
-      console.error('Failed to load plan status:', err);
+    } catch (err: any) {
+      // 401 means user is not authenticated (e.g. just logged out) — ignore silently
+      if (err?.response?.status !== 401) {
+        console.error('Failed to load plan status:', err);
+      }
     } finally {
       setLoading(false);
     }

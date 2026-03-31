@@ -324,7 +324,7 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Stats Cards - Clickable */
+      {/* Stats Cards - Clickable */}
       <motion.div
         className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
         variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
@@ -424,7 +424,7 @@ export default function DashboardPage() {
         </Card>
       </motion.div>
 
-      {/* Collection Progress */
+      {/* Collection Progress */}
       {stats.billedThisMonth > 0 && (
         <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
         <Card>
@@ -446,7 +446,7 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      {/* Two Column Layout */
+      {/* Two Column Layout */}
       <motion.div
         className="grid gap-6 lg:grid-cols-2"
         variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
@@ -549,7 +549,7 @@ export default function DashboardPage() {
         </Card>
       </motion.div>
 
-      {/* Quick Actions */
+      {/* Quick Actions */}
       <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
       <Card>
         <CardHeader>
