@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, MessageSquare, CheckCircle2, XCircle, TrendingUp, Users, PieChart } from 'lucide-react';
 import { format } from 'date-fns';
 import { Rupee } from '@/lib/currency';
+import { motion } from 'framer-motion';
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -60,16 +61,26 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div>
+    <motion.div
+      className="p-4 md:p-6 space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }}
+    >
+      <motion.div
+        variants={{ hidden: { opacity: 0, y: -16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      >
         <h1 className="text-xl md:text-3xl font-bold">Message Analytics</h1>
         <p className="text-sm md:text-base text-muted-foreground">
           Track and analyze your SMS and WhatsApp message usage
         </p>
-      </div>
+      </motion.div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <motion.div
+        className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4"
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      >
         <Card className="p-3 md:p-4">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total Messages</CardTitle>
@@ -121,9 +132,12 @@ export default function AnalyticsPage() {
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
+      <motion.div
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      >
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="overview" className="text-xs md:text-sm">
@@ -282,6 +296,7 @@ export default function AnalyticsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, LineChart, Sun, Moon, Settings, LogOut, User, BarChart3, CreditCard, Wallet } from 'lucide-react';
+import { motion } from 'framer-motion';
 import MobileNav from './MobileNav';
 import { NotificationBell } from '@/components/NotificationCenter';
 import BranchSelector from '@/components/BranchSelector';
@@ -85,9 +86,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <BranchSelector />
         </SidebarHeader>
         <SidebarContent>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+            }}
+          >
           <SidebarMenu>
             {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              <motion.div
+                key={item.href}
+                variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3 } } }}
+              >
+              <SidebarMenuItem>
                 <Link href={item.href} legacyBehavior passHref>
                   <SidebarMenuButton
                     isActive={pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))}
@@ -98,8 +111,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
+              </motion.div>
             ))}
           </SidebarMenu>
+          </motion.div>
         </SidebarContent>
         <SidebarFooter className="p-4 space-y-2">
           {/* User Profile Dropdown */}

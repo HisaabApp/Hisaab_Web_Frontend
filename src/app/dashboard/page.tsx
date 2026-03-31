@@ -30,6 +30,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { getYear, getMonth, subMonths, format, parseISO, differenceInDays, isToday, isYesterday } from 'date-fns';
+import { motion } from 'framer-motion';
 
 // Skeleton loader for dashboard
 function DashboardSkeleton() {
@@ -282,12 +283,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }}
+    >
       {/* Pending Invitations Banner */}
       <PendingInvitations />
       
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border">
+      <motion.div
+        className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border"
+        variants={{ hidden: { opacity: 0, y: -16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } } }}
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
@@ -313,10 +322,13 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Stats Cards - Clickable */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards - Clickable */
+      <motion.div
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      >
         {/* Total Customers */}
         <Card 
           className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50"
@@ -410,10 +422,11 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      {/* Collection Progress */}
+      {/* Collection Progress */
       {stats.billedThisMonth > 0 && (
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -430,10 +443,14 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       )}
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Two Column Layout */
+      <motion.div
+        className="grid gap-6 lg:grid-cols-2"
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      >
         {/* Recent Activity */}
         <Card>
           <CardHeader>
@@ -530,9 +547,10 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions */
+      <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -574,6 +592,7 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

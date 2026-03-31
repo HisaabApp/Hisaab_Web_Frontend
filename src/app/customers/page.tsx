@@ -40,6 +40,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { usePlanLimit } from '@/hooks/usePlanLimit';
 import { usePlanLimitModal } from '@/contexts/PlanLimitContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { motion } from 'framer-motion';
 
 type CustomerStatus = 'active' | 'overdue' | 'new' | 'inactive';
 type SortOption = 'name-asc' | 'name-desc' | 'balance-desc' | 'balance-asc' | 'recent' | 'oldest';
@@ -662,13 +663,21 @@ export default function CustomersPage() {
           </div>
 
           {/* Desktop cards grid */}
-          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCustomers.map((customer, index) => (
-              <Card key={customer.id}
-                className={`group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer animate-in fade-in slide-in-from-bottom-4 ${
+          <motion.div
+            className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } }}
+          >
+            {filteredCustomers.map((customer) => (
+              <motion.div
+                key={customer.id}
+                variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } }}
+              >
+              <Card
+                className={`group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer ${
                   selectedCustomers.has(customer.id) ? (deleteMode ? 'ring-2 ring-red-500 bg-red-50' : 'ring-2 ring-primary') : ''
                 }`}
-                style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                 onClick={() => (deleteMode || selectionMode) ? toggleCustomerSelection(customer.id) : router.push(`/customers/${customer.id}`)}
               >
                 <CardContent className="p-4">
@@ -732,8 +741,9 @@ export default function CustomersPage() {
                   )}
                 </CardContent>
               </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           </>
         ) : (
           <Card className="p-12"><div className="text-center">

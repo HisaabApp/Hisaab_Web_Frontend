@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import GoogleSignButton from '@/components/GoogleSignButton';
 
 export default function LoginPage() {
@@ -25,7 +26,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-3 sm:p-4">
-      <Card className="w-full max-w-md shadow-xl">
+      <motion.div
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+      <Card className="w-full shadow-xl">
         <CardHeader className="space-y-2 sm:space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
             <Image 
@@ -61,6 +68,7 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
     </div>
   );
 }
